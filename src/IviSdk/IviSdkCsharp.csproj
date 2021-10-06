@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.18.0" />
+    <PackageReference Include="Grpc" Version="2.40.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.39.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.40.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+	<ItemGroup>
+    <Protobuf Include="ivi-sdk-proto/**/*.proto" ProtoRoot="ivi-sdk-proto" OutputDir="$(Protobuf_OutputPath)%(RelativeDir)" CompileOutputs="TRUE" GrpcServices="Client" />
+  </ItemGroup>
+	<ItemGroup>
+	  <Compile Include="obj\Debug\net5.0\ivi-sdk-proto\api\item\api\item\IItem.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Client\Observer\" />
+	  <Folder Include="Util\" />
+	</ItemGroup>
+
+</Project>

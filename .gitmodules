@@ -1,0 +1,3 @@
+[submodule "src/IviSdk/ivi-sdk-proto"]
+	path = src/IviSdk/ivi-sdk-proto
+	url = https://github.com/MythicalGames/ivi-sdk-proto.git

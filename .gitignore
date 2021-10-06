@@ -1,0 +1,16 @@
+
+ivi-sdk/src/IviSdk/.vs/IviSdk/v16/.suo
+
+ivi-sdk/src/IviSdk/IviSdk/obj/*
+
+src/IviSdk/.vs/IviSdk/DesignTimeBuild/
+
+src/IviSdk/bin/Debug/net5.0/
+
+src/IviSdk/.vs/IviSdk/v16/.suo
+
+obj/*
+
+src/IviSdk/obj
+
+*.user
