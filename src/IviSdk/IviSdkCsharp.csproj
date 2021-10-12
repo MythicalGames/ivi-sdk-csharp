@@ -16,12 +16,6 @@
 	<ItemGroup>
     <Protobuf Include="ivi-sdk-proto/**/*.proto" ProtoRoot="ivi-sdk-proto" OutputDir="$(Protobuf_OutputPath)%(RelativeDir)" CompileOutputs="TRUE" GrpcServices="Client" />
   </ItemGroup>
-	<ItemGroup>
-	  <Compile Include="obj\Debug\net5.0\ivi-sdk-proto\api\item\api\item\IItem.cs" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Client\Observer\" />
-	  <Folder Include="Util\" />
-	</ItemGroup>
+	
 
 </Project>
