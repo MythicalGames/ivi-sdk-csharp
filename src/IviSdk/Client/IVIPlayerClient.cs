@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Ivi.Proto.Api.Player;
 using Ivi.Proto.Common.Sort;
 using Ivi.Rpc.Api.Player;
-using Ivi.Rpc.Streams.Player;
 using IviSdkCsharp.Client.Executor;
 using IviSdkCsharp.Exception;
 using Microsoft.Extensions.Logging;
@@ -16,9 +17,9 @@ namespace Games.Mythical.Ivi.Sdk.Client
     {
         private readonly IVIPlayerExecutor _playerExecutor;
         private readonly ILogger<IviPlayerClient> _logger;
-        private PlayerService.PlayerServiceClient _serviceBlockingStub = null;
+        private PlayerService.PlayerServiceClient? _client;
 
-        public IviPlayerClient(IVIPlayerExecutor playerExecutor, ILogger<IviPlayerClient> logger) : base()
+        public IviPlayerClient(IVIPlayerExecutor playerExecutor, ILogger<IviPlayerClient> logger)
         {
             _logger = logger;
 
@@ -26,25 +27,20 @@ namespace Games.Mythical.Ivi.Sdk.Client
             var options = new GrpcChannelOptions();
 
             //options.Credentials
-            this.channel = GrpcChannel.ForAddress($"{host}:{port}", options );
+            this._channel = GrpcChannel.ForAddress($"{host}:{port}", options );
 
             //var cts = new CancellationTokenSource(TimeSpan.FromSeconds(keepAlive));
             //.KeepAliveTime(keepAlive, TimeUnit.SECONDS).Build()
             
         }
 
-        private IviPlayerClient(IVIPlayerExecutor playerExecutor, GrpcChannel channel)
+        internal IviPlayerClient(IVIPlayerExecutor playerExecutor, ILogger<IviPlayerClient> logger, GrpcChannel channel)
         {
-            this._playerExecutor = playerExecutor;
-            this.channel = channel;
+            _logger = logger;
+            _playerExecutor = playerExecutor;
+            _channel = channel;
         }
-        private PlayerService.PlayerServiceClient ServiceBlockingStub
-        {
-            get
-            {
-                return _serviceBlockingStub ??= new PlayerService.PlayerServiceClient(channel);
-            }
-        }
+        private PlayerService.PlayerServiceClient Client => _client ??= new PlayerService.PlayerServiceClient(_channel);
 
         public virtual void LinkPlayer(string playerId, string email, string displayName, string requestIp)
         {
@@ -66,7 +62,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
 
                 CallOptions options = new CallOptions();
                 //options.CancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(keepAlive));
-                var result = ServiceBlockingStub.LinkPlayer(request, options);
+                var result = Client.LinkPlayer(request, options);
                 _playerExecutor.UpdatePlayer(playerId, result.TrackingId, result.PlayerState);
             }
             catch (RpcException e)
@@ -81,20 +77,17 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
         }
         
-        public virtual IVIPlayer GetPlayer(string playerId)
+        public async Task<IVIPlayer?> GetPlayerAsync(string playerId, CancellationToken cancellationToken = default)
         {
             _logger.LogDebug("PlayerClient.getPlayer called from player: {}", playerId);
 
             try
             {
-                var request = new GetPlayerRequest
+                return await Client.GetPlayerAsync(new GetPlayerRequest
                 {
                     EnvironmentId = environmentId,
                     PlayerId = playerId
-                };
-        
-                var result = ServiceBlockingStub.GetPlayer(request);
-                return result;
+                }, cancellationToken: cancellationToken);
             }
             catch (RpcException ex)
             {
@@ -120,7 +113,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
                     SortOrder = sortOrder,
                     CreatedTimestamp = (ulong) createdTimestamp.Ticks
                 };
-                var result = ServiceBlockingStub.GetPlayers(request);
+                var result = Client.GetPlayers(request);
                 return result.IviPlayers;
             }
             catch (RpcException e)

@@ -1,10 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using System.Runtime.CompilerServices;
 using Grpc.Core;
 using Grpc.Net.Client;
 using IviSdkCsharp.Config;
 using IviSdkCsharp.Exception;
+[assembly:InternalsVisibleTo("IviSdkCsharp.Tests")]
 
 namespace Games.Mythical.Ivi.Sdk.Client
 {
@@ -17,34 +16,29 @@ namespace Games.Mythical.Ivi.Sdk.Client
         protected readonly string apiKey;
         // gRPC settings
         protected int KeepAlive { get; }
-        protected GrpcChannel channel;
+        protected GrpcChannel _channel;
         protected AbstractIVIClient()
         {
-            if (String.IsNullOrEmpty(IviConfiguration.GetEnvironmentId()))
+            if (string.IsNullOrEmpty(IviConfiguration.EnvironmentId))
             {
                 throw new IVIException("Environment Id not set!", IVIErrorCode.ENVIRONMENT_ID_NOT_SET);
             }
 
-            environmentId = IviConfiguration.GetEnvironmentId();
-            if (String.IsNullOrEmpty(IviConfiguration.GetApiKey()))
+            environmentId = IviConfiguration.EnvironmentId;
+            if (string.IsNullOrEmpty(IviConfiguration.ApiKey))
             {
                 throw new IVIException("API Key not set!", IVIErrorCode.APIKEY_NOT_SET);
             }
 
-            apiKey = IviConfiguration.GetApiKey();
-            if (String.IsNullOrEmpty(IviConfiguration.GetHost()))
+            apiKey = IviConfiguration.ApiKey;
+            if (string.IsNullOrEmpty(IviConfiguration.Host))
             {
                 throw new IVIException("Host not set!", IVIErrorCode.HOST_NOT_SET);
             }
 
-            host = IviConfiguration.GetHost();
-            if (IviConfiguration.GetPort() == null)
-            {
-                throw new IVIException("Port not set!", IVIErrorCode.PORT_NOT_SET);
-            }
-
-            port = IviConfiguration.GetPort();
-            KeepAlive = IviConfiguration.GetKeepAlive();
+            host = IviConfiguration.Host;
+            port = IviConfiguration.Port;
+            KeepAlive = IviConfiguration.KeepAlive;
         }
 
         //public abstract void InitStub();
