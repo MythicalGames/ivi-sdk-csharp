@@ -7,10 +7,11 @@ namespace IviSdkCsharp.Tests.Host
 {
     public class TestWebApplicationFactory: WebApplicationFactory<Startup>
     {
+        public const string ApiKey = "Test api key";
         public TestWebApplicationFactory()
         {
             IviConfiguration.EnvironmentId = "Test environment id";
-            IviConfiguration.ApiKey = "Test api key";
+            IviConfiguration.ApiKey = ApiKey;
         }
 
         protected override IHostBuilder CreateHostBuilder() =>

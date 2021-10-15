@@ -15,7 +15,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task GetPlayerAsync_ValidRequest_ReturnsRequestedPlayer()
         {
-            var playerClient = new IviPlayerClient(null, NullLogger<IviPlayerClient>.Instance, _fixture.Channel);
+            var playerClient = new IviPlayerClient(null, NullLogger<IviPlayerClient>.Instance, _fixture.Client);
             const string playerId = "Ninja";
             
             var result = await playerClient.GetPlayerAsync(playerId);

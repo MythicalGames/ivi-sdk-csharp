@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -24,23 +25,19 @@ namespace Games.Mythical.Ivi.Sdk.Client
             _logger = logger;
 
             this._playerExecutor = playerExecutor;
-            var options = new GrpcChannelOptions();
-
-            //options.Credentials
-            this._channel = GrpcChannel.ForAddress($"{host}:{port}", options );
+            this.Channel = ConstructChannel(new Uri($"{host}:{port}"));
 
             //var cts = new CancellationTokenSource(TimeSpan.FromSeconds(keepAlive));
             //.KeepAliveTime(keepAlive, TimeUnit.SECONDS).Build()
-            
         }
 
-        internal IviPlayerClient(IVIPlayerExecutor playerExecutor, ILogger<IviPlayerClient> logger, GrpcChannel channel)
+        internal IviPlayerClient(IVIPlayerExecutor playerExecutor, ILogger<IviPlayerClient> logger, HttpClient httpClient)
         {
             _logger = logger;
             _playerExecutor = playerExecutor;
-            _channel = channel;
+            Channel = ConstructChannel(httpClient.BaseAddress!, new GrpcChannelOptions{ HttpClient = httpClient });
         }
-        private PlayerService.PlayerServiceClient Client => _client ??= new PlayerService.PlayerServiceClient(_channel);
+        private PlayerService.PlayerServiceClient Client => _client ??= new PlayerService.PlayerServiceClient(Channel);
 
         public virtual void LinkPlayer(string playerId, string email, string displayName, string requestIp)
         {
