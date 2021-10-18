@@ -17,7 +17,7 @@ namespace IviSdkCsharp.Tests.Host.Services
         public static readonly GetPlayersExpectedRequest GetPlayersExpectedRequestData =
             new GetPlayersExpectedRequest(DateTimeOffset.UtcNow, 13579, SortOrder.Desc);
 
-        private static bool IdDefaultRequest(GetPlayersRequest request)
+        private static bool IsDefaultRequest(GetPlayersRequest request)
         {
             if (request.EnvironmentId != IviConfiguration.EnvironmentId) return false;
             var createdTimestampDiff = (long) request.CreatedTimestamp -

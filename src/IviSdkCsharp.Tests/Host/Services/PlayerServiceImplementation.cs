@@ -20,7 +20,7 @@ namespace IviSdkCsharp.Tests.Host.Services
             };
 
         public override Task<IVIPlayers> GetPlayers(GetPlayersRequest request, ServerCallContext context) =>
-          IdDefaultRequest(request) 
+          IsDefaultRequest(request) 
             ? Task.FromResult(DefaultPlayers)
             : throw new System.Exception("Only return data when get pre-configured request");
     }
