@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using IviSdkCsharp.Tests.Host.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,9 +17,19 @@ namespace IviSdkCsharp.Tests.Host
             {
                 app.UseDeveloperExceptionPage();
             }
-
             app.UseRouting();
-
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Headers.TryGetValue("api-key", out var apiKey)
+                    && apiKey == TestWebApplicationFactory.ApiKey)
+                {
+                    await next();
+                }
+                else
+                {
+                    throw new AuthenticationException("API key was not set!");
+                }
+            });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<PlayerServiceImplementation>();

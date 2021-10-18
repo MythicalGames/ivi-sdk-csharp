@@ -1,5 +1,8 @@
-﻿using Grpc.Net.Client;
+﻿using System;
+using System.Net.Http;
+using Grpc.Net.Client;
 using IviSdkCsharp.Tests.Host;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace IviSdkCsharp.Tests
@@ -10,14 +13,13 @@ namespace IviSdkCsharp.Tests
         public GrpcTestServerFixture()
         {
             var factory = new TestWebApplicationFactory();
-            var client = factory.CreateClient();
-            Channel = GrpcChannel.ForAddress(client.BaseAddress!, new GrpcChannelOptions
+            Client = factory.CreateClient(new WebApplicationFactoryClientOptions
             {
-                HttpClient = client
+                BaseAddress = new Uri("https://localhost")
             });
         }
 
-        public GrpcChannel Channel { get;  }
+        public HttpClient Client { get;  }
     }
     
     [CollectionDefinition(GrpcTestServerFixture.GrpcTestServerFixtureCollection)]

@@ -1,5 +1,8 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Grpc.Core;
+using Grpc.Core.Interceptors;
 using Grpc.Net.Client;
 using IviSdkCsharp.Config;
 using IviSdkCsharp.Exception;
@@ -16,37 +19,35 @@ namespace Games.Mythical.Ivi.Sdk.Client
         protected readonly string apiKey;
         // gRPC settings
         protected int KeepAlive { get; }
-        protected GrpcChannel _channel;
+        protected GrpcChannel Channel;
         protected AbstractIVIClient()
         {
-            if (string.IsNullOrEmpty(IviConfiguration.EnvironmentId))
-            {
-                throw new IVIException("Environment Id not set!", IVIErrorCode.ENVIRONMENT_ID_NOT_SET);
-            }
-
-            environmentId = IviConfiguration.EnvironmentId;
-            if (string.IsNullOrEmpty(IviConfiguration.ApiKey))
-            {
-                throw new IVIException("API Key not set!", IVIErrorCode.APIKEY_NOT_SET);
-            }
-
-            apiKey = IviConfiguration.ApiKey;
-            if (string.IsNullOrEmpty(IviConfiguration.Host))
-            {
-                throw new IVIException("Host not set!", IVIErrorCode.HOST_NOT_SET);
-            }
-
+            EnsureStringValue(IviConfiguration.EnvironmentId, "Environment Id not set!", IVIErrorCode.ENVIRONMENT_ID_NOT_SET);
+            EnsureStringValue(IviConfiguration.ApiKey, "API Key not set!", IVIErrorCode.APIKEY_NOT_SET);
+            EnsureStringValue(IviConfiguration.Host, "Host not set!", IVIErrorCode.HOST_NOT_SET);
+            
+            environmentId = IviConfiguration.EnvironmentId!;
+            apiKey = IviConfiguration.ApiKey!;
             host = IviConfiguration.Host;
             port = IviConfiguration.Port;
             KeepAlive = IviConfiguration.KeepAlive;
+
+            static void EnsureStringValue(string? value, string errorMessage, IVIErrorCode errorCode)
+            {
+                if (string.IsNullOrWhiteSpace(value)) throw new IVIException(errorMessage, errorCode);
+            }
         }
 
-        //public abstract void InitStub();
-
-        public virtual CallCredentials AddAuthentication()
+        protected GrpcChannel ConstructChannel(Uri address, GrpcChannelOptions? options = default)
         {
-            
-            return null;
+            var callCredentials = CallCredentials.FromInterceptor((context, metadata) =>
+            {
+                metadata.Add("API-KEY", apiKey);
+                return Task.CompletedTask;
+            });
+            options ??= new();
+            options.Credentials = ChannelCredentials.Create(new SslCredentials(), callCredentials);
+            return GrpcChannel.ForAddress(address, options);
         }
     }
 }
