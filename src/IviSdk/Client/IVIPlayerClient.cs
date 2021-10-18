@@ -95,20 +95,19 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
         }
 
-        public virtual IList<IVIPlayer> GetPlayers(DateTimeOffset createdTimestamp, int pageSize, SortOrder sortOrder)
+        public async Task<IList<IVIPlayer>?> GetPlayersAsync(DateTimeOffset createdTimestamp, int pageSize, SortOrder sortOrder, CancellationToken cancellationToken = default)
         {
             _logger?.LogDebug("PlayerClient.getPlayers called with params: createdTimestamp {}, pageSize {}, sortOrder {}", createdTimestamp, pageSize, sortOrder);
             try
             {
-
                 var request = new GetPlayersRequest
                 {
                     EnvironmentId = EnvironmentId,
                     PageSize = pageSize,
                     SortOrder = sortOrder,
-                    CreatedTimestamp = (ulong) createdTimestamp.Ticks
+                    CreatedTimestamp = (ulong) createdTimestamp.ToUnixTimeSeconds()
                 };
-                var result = Client.GetPlayers(request);
+                var result = await Client.GetPlayersAsync(request, cancellationToken: cancellationToken);
                 return result.IviPlayers;
             }
             catch (RpcException e)
