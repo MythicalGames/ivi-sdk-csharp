@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Grpc.Core;
-using Grpc.Core.Interceptors;
 using Grpc.Net.Client;
 using IviSdkCsharp.Config;
 using IviSdkCsharp.Exception;
@@ -13,24 +12,25 @@ namespace Games.Mythical.Ivi.Sdk.Client
     public abstract class AbstractIVIClient
     {
         // IVI settings
-        protected readonly string host;
-        protected readonly int port;
-        protected readonly string environmentId;
-        protected readonly string apiKey;
+        protected readonly string Host;
+        protected readonly int Port;
+        protected readonly string EnvironmentId;
+        protected readonly string ApiKey;
         // gRPC settings
         protected int KeepAlive { get; }
         protected GrpcChannel Channel;
-        protected AbstractIVIClient()
+        protected AbstractIVIClient(Uri? address = default, GrpcChannelOptions? options = default)
         {
             EnsureStringValue(IviConfiguration.EnvironmentId, "Environment Id not set!", IVIErrorCode.ENVIRONMENT_ID_NOT_SET);
             EnsureStringValue(IviConfiguration.ApiKey, "API Key not set!", IVIErrorCode.APIKEY_NOT_SET);
             EnsureStringValue(IviConfiguration.Host, "Host not set!", IVIErrorCode.HOST_NOT_SET);
             
-            environmentId = IviConfiguration.EnvironmentId!;
-            apiKey = IviConfiguration.ApiKey!;
-            host = IviConfiguration.Host;
-            port = IviConfiguration.Port;
+            EnvironmentId = IviConfiguration.EnvironmentId!;
+            ApiKey = IviConfiguration.ApiKey!;
+            Host = IviConfiguration.Host;
+            Port = IviConfiguration.Port;
             KeepAlive = IviConfiguration.KeepAlive;
+            Channel = ConstructChannel(address ?? new Uri($"{Host}:{Port}"), options);
 
             static void EnsureStringValue(string? value, string errorMessage, IVIErrorCode errorCode)
             {
@@ -38,15 +38,15 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
         }
 
-        protected GrpcChannel ConstructChannel(Uri address, GrpcChannelOptions? options = default)
+        private GrpcChannel ConstructChannel(Uri address, GrpcChannelOptions? options = default)
         {
-            var callCredentials = CallCredentials.FromInterceptor((context, metadata) =>
+            var callCredentials = CallCredentials.FromInterceptor((_, metadata) =>
             {
-                metadata.Add("API-KEY", apiKey);
+                metadata.Add("API-KEY", ApiKey);
                 return Task.CompletedTask;
             });
             options ??= new();
-            options.Credentials = ChannelCredentials.Create(new SslCredentials(), callCredentials);
+            options.Credentials = ChannelCredentials.Create(new SslCredentials(), callCredentials!);
             return GrpcChannel.ForAddress(address, options);
         }
     }

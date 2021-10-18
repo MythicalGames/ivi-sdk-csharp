@@ -17,36 +17,34 @@ namespace Games.Mythical.Ivi.Sdk.Client
     public class IviPlayerClient : AbstractIVIClient
     {
         private readonly IVIPlayerExecutor _playerExecutor;
-        private readonly ILogger<IviPlayerClient> _logger;
+        private readonly ILogger<IviPlayerClient>? _logger;
         private PlayerService.PlayerServiceClient? _client;
 
-        public IviPlayerClient(IVIPlayerExecutor playerExecutor, ILogger<IviPlayerClient> logger)
+        public IviPlayerClient(IVIPlayerExecutor playerExecutor, ILogger<IviPlayerClient>? logger)
         {
             _logger = logger;
-
-            this._playerExecutor = playerExecutor;
-            this.Channel = ConstructChannel(new Uri($"{host}:{port}"));
+            _playerExecutor = playerExecutor;
 
             //var cts = new CancellationTokenSource(TimeSpan.FromSeconds(keepAlive));
             //.KeepAliveTime(keepAlive, TimeUnit.SECONDS).Build()
         }
 
-        internal IviPlayerClient(IVIPlayerExecutor playerExecutor, ILogger<IviPlayerClient> logger, HttpClient httpClient)
+        internal IviPlayerClient(IVIPlayerExecutor playerExecutor, ILogger<IviPlayerClient>? logger, HttpClient httpClient)
+            : base(httpClient.BaseAddress!, new GrpcChannelOptions{ HttpClient = httpClient })
         {
             _logger = logger;
             _playerExecutor = playerExecutor;
-            Channel = ConstructChannel(httpClient.BaseAddress!, new GrpcChannelOptions{ HttpClient = httpClient });
         }
         private PlayerService.PlayerServiceClient Client => _client ??= new PlayerService.PlayerServiceClient(Channel);
 
         public virtual void LinkPlayer(string playerId, string email, string displayName, string requestIp)
         {
-            _logger.LogDebug("PlayerClient.linkPlayer called from player: {}:{}:{}", playerId, email, displayName);
+            _logger?.LogDebug("PlayerClient.linkPlayer called from player: {}:{}:{}", playerId, email, displayName);
             try
             {
                 var request = new LinkPlayerRequest
                 {
-                    EnvironmentId = environmentId,
+                    EnvironmentId = EnvironmentId,
                     PlayerId = playerId,
                     Email = email,
                     DisplayName = displayName
@@ -68,7 +66,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
             catch (Exception e)
             {
-                _logger.LogError("Exception calling updatePlayerState on linkPlayer, player will be in an invalid state!", e);
+                _logger?.LogError("Exception calling updatePlayerState on linkPlayer, player will be in an invalid state!", e);
 
                 throw new IVIException(IVIErrorCode.LOCAL_EXCEPTION);
             }
@@ -76,13 +74,13 @@ namespace Games.Mythical.Ivi.Sdk.Client
         
         public async Task<IVIPlayer?> GetPlayerAsync(string playerId, CancellationToken cancellationToken = default)
         {
-            _logger.LogDebug("PlayerClient.getPlayer called from player: {}", playerId);
+            _logger?.LogDebug("PlayerClient.getPlayer called from player: {}", playerId);
 
             try
             {
                 return await Client.GetPlayerAsync(new GetPlayerRequest
                 {
-                    EnvironmentId = environmentId,
+                    EnvironmentId = EnvironmentId,
                     PlayerId = playerId
                 }, cancellationToken: cancellationToken);
             }
@@ -99,13 +97,13 @@ namespace Games.Mythical.Ivi.Sdk.Client
 
         public virtual IList<IVIPlayer> GetPlayers(DateTimeOffset createdTimestamp, int pageSize, SortOrder sortOrder)
         {
-            _logger.LogDebug("PlayerClient.getPlayers called with params: createdTimestamp {}, pageSize {}, sortOrder {}", createdTimestamp, pageSize, sortOrder);
+            _logger?.LogDebug("PlayerClient.getPlayers called with params: createdTimestamp {}, pageSize {}, sortOrder {}", createdTimestamp, pageSize, sortOrder);
             try
             {
 
                 var request = new GetPlayersRequest
                 {
-                    EnvironmentId = environmentId,
+                    EnvironmentId = EnvironmentId,
                     PageSize = pageSize,
                     SortOrder = sortOrder,
                     CreatedTimestamp = (ulong) createdTimestamp.Ticks
@@ -115,7 +113,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
             catch (RpcException e)
             {
-                _logger.LogError("gRPC error from IVI server", e);
+                _logger?.LogError("gRPC error from IVI server", e);
                 throw IVIException.FromGrpcException(e);
             }
         }
