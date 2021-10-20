@@ -19,7 +19,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task GetPlayerAsync_ValidRequest_ReturnsRequestedPlayer()
         {
-            var playerClient = new IviPlayerClient(null, NullLogger<IviPlayerClient>.Instance, _fixture.Client);
+            var playerClient = new IviPlayerClient(NullLogger<IviPlayerClient>.Instance, _fixture.Client);
             
             var result = await playerClient.GetPlayerAsync(PlayerIdExisting);
             
@@ -30,7 +30,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task GetPlayerAsync_NotFound_ReturnsNull()
         {
-            var playerClient = new IviPlayerClient(null, NullLogger<IviPlayerClient>.Instance, _fixture.Client);
+            var playerClient = new IviPlayerClient(NullLogger<IviPlayerClient>.Instance, _fixture.Client);
             
             var result = await playerClient.GetPlayerAsync(PlayerIdNotFound);
             
@@ -40,7 +40,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task GetPlayerAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var playerClient = new IviPlayerClient(null, NullLogger<IviPlayerClient>.Instance, _fixture.Client);
+            var playerClient = new IviPlayerClient(NullLogger<IviPlayerClient>.Instance, _fixture.Client);
             
             Should.Throw<IVIException>(async () => await playerClient.GetPlayerAsync(PlayerIdThrow));
         }
@@ -48,7 +48,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task GetPlayersAsync_ValidRequest_ReturnsRequestedPlayers()
         {
-            var playerClient = new IviPlayerClient(null, NullLogger<IviPlayerClient>.Instance, _fixture.Client);
+            var playerClient = new IviPlayerClient(NullLogger<IviPlayerClient>.Instance, _fixture.Client);
             var (offset, pageSize, sortOrder) = GetPlayersExpectedRequestData;
             
             var result = await playerClient.GetPlayersAsync(offset, pageSize, sortOrder);
@@ -59,7 +59,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public void GetPlayersAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var playerClient = new IviPlayerClient(null, null, _fixture.Client);
+            var playerClient = new IviPlayerClient(null, _fixture.Client);
             var (offset, pageSize, sortOrder) = GetPlayersExpectedRequestData;
 
             Should.Throw<IVIException>(async () =>

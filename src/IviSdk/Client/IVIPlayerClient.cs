@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Ivi.Proto.Api.Player;
+using Ivi.Proto.Common.Player;
 using Ivi.Proto.Common.Sort;
 using Ivi.Rpc.Api.Player;
+using Ivi.Rpc.Streams;
+using Ivi.Rpc.Streams.Player;
 using IviSdkCsharp.Client.Executor;
 using IviSdkCsharp.Exception;
 using Microsoft.Extensions.Logging;
@@ -16,25 +19,56 @@ namespace Games.Mythical.Ivi.Sdk.Client
 {
     public class IviPlayerClient : AbstractIVIClient
     {
-        private readonly IVIPlayerExecutor _playerExecutor;
         private readonly ILogger<IviPlayerClient>? _logger;
+        private readonly IVIPlayerExecutor? _playerExecutor;
         private PlayerService.PlayerServiceClient? _client;
+        private PlayerStream.PlayerStreamClient? _streamClient;
 
-        public IviPlayerClient(IVIPlayerExecutor playerExecutor, ILogger<IviPlayerClient>? logger)
-        {
+        public IviPlayerClient(ILogger<IviPlayerClient>? logger) => _logger = logger;
+
+        internal IviPlayerClient(ILogger<IviPlayerClient>? logger, HttpClient httpClient)
+            : base(httpClient.BaseAddress!, new GrpcChannelOptions{ HttpClient = httpClient }) =>
             _logger = logger;
-            _playerExecutor = playerExecutor;
 
-            //var cts = new CancellationTokenSource(TimeSpan.FromSeconds(keepAlive));
-            //.KeepAliveTime(keepAlive, TimeUnit.SECONDS).Build()
+        public IVIPlayerExecutor UpdateSubscription
+        {
+            init
+            {
+                _playerExecutor = value;
+                Task.Run(SubscribeToStream);
+            }
         }
 
-        internal IviPlayerClient(IVIPlayerExecutor playerExecutor, ILogger<IviPlayerClient>? logger, HttpClient httpClient)
-            : base(httpClient.BaseAddress!, new GrpcChannelOptions{ HttpClient = httpClient })
+        private async Task SubscribeToStream()
         {
-            _logger = logger;
-            _playerExecutor = playerExecutor;
+            _streamClient = new PlayerStream.PlayerStreamClient(Channel);
+            using var call = _streamClient.PlayerStatusStream(new Subscribe {EnvironmentId = EnvironmentId});
+            await foreach (var response in call.ResponseStream.ReadAllAsync())
+            {
+                _logger.LogDebug("Player update subscription for player id {playerId}", response.PlayerId);
+                try
+                {
+                    _playerExecutor?.UpdatePlayer(response.PlayerId, response.TrackingId, response.PlayerState);
+                    await ConfirmPlayerUpdateAsync(response.PlayerId, response.TrackingId, response.PlayerState);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Error calling {nameof(_playerExecutor.UpdatePlayer)}");
+                }
+            }
         }
+
+        private async Task ConfirmPlayerUpdateAsync(string playerId, string trackingId, PlayerState playerState)
+        {
+            await _streamClient!.PlayerStatusConfirmationAsync(new PlayerStatusConfirmRequest
+            {
+                EnvironmentId = EnvironmentId,
+                PlayerId = playerId,
+                PlayerState = playerState,
+                TrackingId = trackingId
+            });
+        }
+
         private PlayerService.PlayerServiceClient Client => _client ??= new PlayerService.PlayerServiceClient(Channel);
 
         public virtual void LinkPlayer(string playerId, string email, string displayName, string requestIp)
@@ -58,7 +92,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
                 CallOptions options = new CallOptions();
                 //options.CancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(keepAlive));
                 var result = Client.LinkPlayer(request, options);
-                _playerExecutor.UpdatePlayer(playerId, result.TrackingId, result.PlayerState);
+                _playerExecutor?.UpdatePlayer(playerId, result.TrackingId, result.PlayerState);
             }
             catch (RpcException e)
             {
@@ -74,7 +108,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
         
         public async Task<IVIPlayer?> GetPlayerAsync(string playerId, CancellationToken cancellationToken = default)
         {
-            _logger?.LogDebug("PlayerClient.getPlayer called from player: {}", playerId);
+            _logger?.LogDebug("PlayerClient.getPlayer called from player: {playerId}", playerId);
 
             try
             {
