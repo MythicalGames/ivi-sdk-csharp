@@ -42,18 +42,21 @@ namespace Games.Mythical.Ivi.Sdk.Client
         private async Task SubscribeToStream()
         {
             _streamClient = new PlayerStream.PlayerStreamClient(Channel);
-            using var call = _streamClient.PlayerStatusStream(new Subscribe {EnvironmentId = EnvironmentId});
-            await foreach (var response in call.ResponseStream.ReadAllAsync())
+            while (true)
             {
-                _logger.LogDebug("Player update subscription for player id {playerId}", response.PlayerId);
-                try
+                using var call = _streamClient.PlayerStatusStream(new Subscribe {EnvironmentId = EnvironmentId});
+                await foreach (var response in call.ResponseStream.ReadAllAsync())
                 {
-                    _playerExecutor?.UpdatePlayer(response.PlayerId, response.TrackingId, response.PlayerState);
-                    await ConfirmPlayerUpdateAsync(response.PlayerId, response.TrackingId, response.PlayerState);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, $"Error calling {nameof(_playerExecutor.UpdatePlayer)}");
+                    _logger.LogDebug("Player update subscription for player id {playerId}", response.PlayerId);
+                    try
+                    {
+                        _playerExecutor?.UpdatePlayer(response.PlayerId, response.TrackingId, response.PlayerState);
+                        await ConfirmPlayerUpdateAsync(response.PlayerId, response.TrackingId, response.PlayerState);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, $"Error calling {nameof(_playerExecutor.UpdatePlayer)}");
+                    }
                 }
             }
         }
