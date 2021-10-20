@@ -5,6 +5,9 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using IviSdkCsharp.Config;
 using IviSdkCsharp.Exception;
+using Polly;
+using Polly.Retry;
+
 [assembly:InternalsVisibleTo("IviSdkCsharp.Tests")]
 
 namespace Games.Mythical.Ivi.Sdk.Client
@@ -49,5 +52,14 @@ namespace Games.Mythical.Ivi.Sdk.Client
             options.Credentials = ChannelCredentials.Create(new SslCredentials(), callCredentials!);
             return GrpcChannel.ForAddress(address, options);
         }
+
+        private const int maxPower = 15; // 2^15 = 32768 milliseconds ~ 33 seconds
+
+        protected AsyncRetryPolicy GetRetryPolicy(Action<Exception, TimeSpan> onRetry) => Policy.Handle<Exception>()
+            .WaitAndRetryForeverAsync(
+                retryCount => TimeSpan.FromMilliseconds(Math.Pow(2, Math.Min(retryCount, maxPower))),
+                onRetry);
+
+        internal class IviStreamClosedException : Exception{}
     }
 }

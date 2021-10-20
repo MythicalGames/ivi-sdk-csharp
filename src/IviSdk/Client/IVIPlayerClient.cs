@@ -41,22 +41,36 @@ namespace Games.Mythical.Ivi.Sdk.Client
 
         private async Task SubscribeToStream()
         {
-            _streamClient = new PlayerStream.PlayerStreamClient(Channel);
-            while (true)
-            {
-                using var call = _streamClient.PlayerStatusStream(new Subscribe {EnvironmentId = EnvironmentId});
-                await foreach (var response in call.ResponseStream.ReadAllAsync())
+            await GetRetryPolicy(LogRetry)
+                .ExecuteAsync(async () =>
                 {
-                    _logger.LogDebug("Player update subscription for player id {playerId}", response.PlayerId);
-                    try
+                    _streamClient = new PlayerStream.PlayerStreamClient(Channel);
+                    using var call = _streamClient.PlayerStatusStream(new Subscribe {EnvironmentId = EnvironmentId});
+                    await foreach (var response in call.ResponseStream.ReadAllAsync())
                     {
-                        _playerExecutor?.UpdatePlayer(response.PlayerId, response.TrackingId, response.PlayerState);
-                        await ConfirmPlayerUpdateAsync(response.PlayerId, response.TrackingId, response.PlayerState);
+                        _logger.LogDebug("Player update subscription for player id {playerId}", response.PlayerId);
+                        try
+                        {
+                            _playerExecutor?.UpdatePlayer(response.PlayerId, response.TrackingId, response.PlayerState);
+                            await ConfirmPlayerUpdateAsync(response.PlayerId, response.TrackingId, response.PlayerState);
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogError(e, $"Error calling {nameof(_playerExecutor.UpdatePlayer)}");
+                        }
                     }
-                    catch (Exception e)
-                    {
-                        _logger.LogError(e, $"Error calling {nameof(_playerExecutor.UpdatePlayer)}");
-                    }
+                    throw new IviStreamClosedException();
+                });
+
+            void LogRetry(Exception ex, TimeSpan delayBetweenRetries)
+            {
+                if (ex is not IviStreamClosedException)
+                {
+                    _logger.LogInformation("Player update stream closed");
+                }
+                else
+                {
+                    _logger.LogError(ex, "Player update subscription error");
                 }
             }
         }
