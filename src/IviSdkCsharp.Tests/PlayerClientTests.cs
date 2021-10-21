@@ -25,6 +25,7 @@ namespace IviSdkCsharp.Tests
             
             result!.PlayerId.ShouldBe(PlayerIdExisting);
             result.DisplayName.ShouldBe("Just making sure this works");
+            result.CreatedTimestamp.ShouldBe(3_000_000_000);
         }
         
         [Fact]

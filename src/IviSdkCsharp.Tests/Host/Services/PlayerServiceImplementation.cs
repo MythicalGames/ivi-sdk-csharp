@@ -13,7 +13,8 @@ namespace IviSdkCsharp.Tests.Host.Services
                 PlayerIdExisting => Task.FromResult(new IVIPlayer
                 {
                     PlayerId = request.PlayerId,
-                    DisplayName = "Just making sure this works"
+                    DisplayName = "Just making sure this works",
+                    CreatedTimestamp = 3_000_000_000
                 }),
                 PlayerIdThrow => throw new System.Exception(),
                 _ => throw new RpcException(new Status(StatusCode.NotFound, string.Empty))
