@@ -13,14 +13,10 @@ namespace IviSdkCsharp.Tests.Host.Services
         public const string PlayerIdThrow = "Should throw";
         
         public record GetPlayersExpectedRequest(DateTimeOffset createdTimestamp, int pageSize, SortOrder sortOrder);
-        public record LinkPlayerExpectdRequest(string playerId, string email, string displayName);
-
+     
         public static readonly GetPlayersExpectedRequest GetPlayersExpectedRequestData =
-            new GetPlayersExpectedRequest(DateTimeOffset.UtcNow, 13579, SortOrder.Desc);
-
-        public static readonly LinkPlayerExpectdRequest LinkPlayerExpectdRequestData =
-            new LinkPlayerExpectdRequest(PlayerIdExisting, "linkplayer@example.com", "linked player display name");
-
+            new (DateTimeOffset.UtcNow, 13579, SortOrder.Desc);
+        
         private static bool IsDefaultRequest(GetPlayersRequest request)
         {
             if (request.EnvironmentId != IviConfiguration.EnvironmentId) return false;

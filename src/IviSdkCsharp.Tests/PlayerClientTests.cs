@@ -15,6 +15,7 @@ namespace IviSdkCsharp.Tests
     public class PlayerClientTests
     {
         private readonly  GrpcTestServerFixture _fixture;
+        private MockPlayerExecutor.UpdatePlayerCall expectedCall;
         public PlayerClientTests(GrpcTestServerFixture fixture) => _fixture = fixture;
 
         [Fact]
@@ -81,21 +82,20 @@ namespace IviSdkCsharp.Tests
             {
                 UpdateSubscription = executor
             };
-            var (playerId, email, displayName) = LinkPlayerExpectdRequestData;
+            expectedCall = new MockPlayerExecutor.UpdatePlayerCall(PlayerIdExisting, expectedIpAddress, PlayerState.PendingLinked);
 
-            await playerClient.LinkPlayerAsync(playerId, email, displayName, passedIpAddress);
-            
-            executor.LastCall.ShouldBe(new MockPlayerExecutor.UpdatePlayerCall(playerId, expectedIpAddress, PlayerState.PendingLinked));
+            await playerClient.LinkPlayerAsync(PlayerIdExisting, "test@example.com", "Ninja", passedIpAddress);
+
+            executor.LastCall.ShouldBe(expectedCall);
         }
         
         [Fact]
-        public async Task LinkPlayerAsync_gRPCServiceThrows_ThrowsIVIException()
+        public void LinkPlayerAsync_gRPCServiceThrows_ThrowsIVIException()
         {
             var playerClient = new IviPlayerClient(null, _fixture.Client);
-            var (_, email, displayName) = LinkPlayerExpectdRequestData;
 
             Should.Throw<IVIException>(async () =>
-                await playerClient.LinkPlayerAsync(PlayerIdThrow, email, displayName, "test@example.com"));
+                await playerClient.LinkPlayerAsync(PlayerIdThrow, "test@example.com", "Ninja", "192.168.1.1"));
         }
     }
 }
