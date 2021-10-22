@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Games.Mythical.Ivi.Sdk.Client;
+using Ivi.Proto.Common.Player;
 using Ivi.Proto.Common.Sort;
 using IviSdkCsharp.Exception;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -25,6 +26,7 @@ namespace IviSdkCsharp.Tests
             
             result!.PlayerId.ShouldBe(PlayerIdExisting);
             result.DisplayName.ShouldBe("Just making sure this works");
+            result.CreatedTimestamp.ShouldBe(3_000_000_000);
         }
         
         [Fact]
@@ -64,6 +66,36 @@ namespace IviSdkCsharp.Tests
 
             Should.Throw<IVIException>(async () =>
                 await playerClient.GetPlayersAsync(offset.AddDays(1), pageSize + 1, SortOrder.Asc));
+        }
+
+        [Theory]
+        [InlineData("192.168.1.1", "192.168.1.1")]
+        [InlineData("", "")]
+        [InlineData(null, "")]
+        [InlineData(" ", "")]
+        [InlineData("\t", "")]
+        public async Task LinkPlayerAsync_ValidInput_LinksAndUpdatesPlayer(string passedIpAddress, string expectedIpAddress)
+        {
+            var executor = new MockPlayerExecutor();
+            var playerClient = new IviPlayerClient(null, _fixture.Client)
+            {
+                UpdateSubscription = executor
+            };
+            var (playerId, email, displayName) = LinkPlayerExpectdRequestData;
+
+            await playerClient.LinkPlayerAsync(playerId, email, displayName, passedIpAddress);
+            
+            executor.LastCall.ShouldBe(new MockPlayerExecutor.UpdatePlayerCall(playerId, expectedIpAddress, PlayerState.PendingLinked));
+        }
+        
+        [Fact]
+        public async Task LinkPlayerAsync_gRPCServiceThrows_ThrowsIVIException()
+        {
+            var playerClient = new IviPlayerClient(null, _fixture.Client);
+            var (_, email, displayName) = LinkPlayerExpectdRequestData;
+
+            Should.Throw<IVIException>(async () =>
+                await playerClient.LinkPlayerAsync(PlayerIdThrow, email, displayName, "test@example.com"));
         }
     }
 }

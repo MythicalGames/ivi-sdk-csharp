@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>      
-      <Protobuf Include="../IviSdk/ivi-sdk-proto/**/rpc.proto" ProtoRoot="../IviSdk/ivi-sdk-proto" GrpcServices="Server" />
+      <Protobuf Include="../IviSdk/ivi-sdk-proto/**/rpc.proto;../IviSdk/ivi-sdk-proto/**/stream.proto" ProtoRoot="../IviSdk/ivi-sdk-proto" GrpcServices="Server" />
     </ItemGroup>
 
     <ItemGroup>

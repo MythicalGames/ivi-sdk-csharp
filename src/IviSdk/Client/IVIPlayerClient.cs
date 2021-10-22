@@ -88,9 +88,10 @@ namespace Games.Mythical.Ivi.Sdk.Client
 
         private PlayerService.PlayerServiceClient Client => _client ??= new PlayerService.PlayerServiceClient(Channel);
 
-        public virtual void LinkPlayer(string playerId, string email, string displayName, string requestIp)
+        public async Task LinkPlayerAsync(string playerId, string email, string displayName, string requestIp)
         {
-            _logger?.LogDebug("PlayerClient.linkPlayer called from player: {}:{}:{}", playerId, email, displayName);
+            _logger?.LogDebug("PlayerClient.linkPlayer called from player: {playerId}:{email}:{displayName}", 
+                playerId, email, displayName);
             try
             {
                 var request = new LinkPlayerRequest
@@ -101,14 +102,12 @@ namespace Games.Mythical.Ivi.Sdk.Client
                     DisplayName = displayName
                 };
 
-                if (!string.IsNullOrEmpty(requestIp))
+                if (!string.IsNullOrWhiteSpace(requestIp))
                 {
                     request.RequestIp = requestIp;
                 }
-
-                CallOptions options = new CallOptions();
-                //options.CancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(keepAlive));
-                var result = Client.LinkPlayer(request, options);
+                
+                var result = await Client.LinkPlayerAsync(request);
                 _playerExecutor?.UpdatePlayer(playerId, result.TrackingId, result.PlayerState);
             }
             catch (RpcException e)
