@@ -41,8 +41,10 @@ namespace Games.Mythical.Ivi.Sdk.Client
 
         private async Task SubscribeToStream()
         {
-            await GetRetryPolicy(LogRetry)
-                .ExecuteAsync(async () =>
+            var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
+            while (true)
+            {
+                try
                 {
                     _streamClient = new PlayerStream.PlayerStreamClient(Channel);
                     using var call = _streamClient.PlayerStatusStream(new Subscribe {EnvironmentId = EnvironmentId});
@@ -52,25 +54,24 @@ namespace Games.Mythical.Ivi.Sdk.Client
                         try
                         {
                             _playerExecutor?.UpdatePlayer(response.PlayerId, response.TrackingId, response.PlayerState);
-                            await ConfirmPlayerUpdateAsync(response.PlayerId, response.TrackingId, response.PlayerState);
+                            await ConfirmPlayerUpdateAsync(response.PlayerId, response.TrackingId,
+                                response.PlayerState);
+                            resetRetries();
                         }
-                        catch (Exception e)
+                        catch (Exception ex)
                         {
-                            _logger.LogError(e, $"Error calling {nameof(_playerExecutor.UpdatePlayer)}");
+                            _logger.LogError(ex, $"Error calling {nameof(_playerExecutor.UpdatePlayer)}");
                         }
                     }
-                    throw new IviStreamClosedException();
-                });
-
-            void LogRetry(Exception ex, TimeSpan delayBetweenRetries)
-            {
-                if (ex is not IviStreamClosedException)
-                {
                     _logger.LogInformation("Player update stream closed");
                 }
-                else
+                catch (Exception ex)
                 {
                     _logger.LogError(ex, "Player update subscription error");
+                }
+                finally
+                {
+                    await waitBeforeRetry();
                 }
             }
         }
