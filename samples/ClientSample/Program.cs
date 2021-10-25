@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Games.Mythical.Ivi.Sdk.Client;
+using Ivi.Proto.Common.Sort;
 using Microsoft.Extensions.Logging;
 
 namespace ClientSample
@@ -17,8 +18,8 @@ namespace ClientSample
             {
                 UpdateSubscription = new LoggingPlayerUpdateSubscription(logger)
             };
-            var player = await playerClient.GetPlayerAsync("JohnDoe");
-            logger.LogInformation("GetPlayerAsync: {@Player}", player);
+            var players = await playerClient.GetPlayersAsync(DateTimeOffset.MinValue, 3, SortOrder.Desc);
+            logger.LogInformation("GetPlayersAsync: {@Players}", players);
 
             Console.ReadLine();
         }

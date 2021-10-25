@@ -5,8 +5,7 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using IviSdkCsharp.Config;
 using IviSdkCsharp.Exception;
-using Polly;
-using Polly.Retry;
+using Microsoft.Extensions.Logging;
 
 [assembly:InternalsVisibleTo("IviSdkCsharp.Tests")]
 
@@ -53,13 +52,49 @@ namespace Games.Mythical.Ivi.Sdk.Client
             return GrpcChannel.ForAddress(address, options);
         }
 
-        private const int maxPower = 15; // 2^15 = 32768 milliseconds ~ 33 seconds
+        protected static (Func<Task> wait, Action reset) GetReconnectAwaiter<T>(ILogger<T>? logger) 
+            where T : AbstractIVIClient
+        {
+            var (wait, reset) = new ReconnectAwaiter<T>(logger);
+            return (wait, reset);
+        }
 
-        protected AsyncRetryPolicy GetRetryPolicy(Action<Exception, TimeSpan> onRetry) => Policy.Handle<Exception>()
-            .WaitAndRetryForeverAsync(
-                retryCount => TimeSpan.FromMilliseconds(Math.Pow(2, Math.Min(retryCount, maxPower))),
-                onRetry);
+        private class ReconnectAwaiter<T> where T: AbstractIVIClient
+        {
+            private readonly ILogger<T>? _logger;
+            private readonly Random rnd = new((int) DateTime.Now.Ticks);
+            private bool _skippedDelayingFirstRetry;
+            private int _requestCount = 1;
+            private const int MaxPower = 15; // 2^15 = 32768 milliseconds ~ 33 seconds
 
-        internal class IviStreamClosedException : Exception{}
+            public ReconnectAwaiter(ILogger<T>? logger) => _logger = logger;
+
+            private async Task WaitBeforeReconnect()
+            {
+                if(!_skippedDelayingFirstRetry) {
+                    _logger?.LogInformation("Immediately reconnecting");
+                    _skippedDelayingFirstRetry = true;
+                    return;
+                }
+
+                var jitterMilliseconds = rnd.Next(1, 1000);
+                var waitMilliseconds = (int) Math.Pow(2, _requestCount) +  jitterMilliseconds;
+                
+                _logger?.LogInformation("Waiting {waitMilliseconds} milliseconds before reconnect", waitMilliseconds);
+                await Task.Delay(waitMilliseconds);
+                _requestCount = Math.Min(MaxPower, _requestCount + 1);
+            }
+
+            private void ResetConnectionRetry() {
+                _skippedDelayingFirstRetry = false;
+                _requestCount = 1;
+            }
+
+            public void Deconstruct(out Func<Task> wait, out Action reset)
+            {
+                wait = WaitBeforeReconnect;
+                reset = ResetConnectionRetry;
+            }
+        }
     }
 }
