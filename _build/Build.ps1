@@ -46,7 +46,7 @@ task RunXUnit {
 
     New-Item -Path $code_coverage_dir -ItemType "directory" -ErrorAction SilentlyContinue
 
-    Push-Location -Path $game_services_backend_solution_dir     
+    Push-Location -Path $solution_dir     
     
     $args = @(            
             "--logger"

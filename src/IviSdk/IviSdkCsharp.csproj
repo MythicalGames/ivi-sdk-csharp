@@ -21,6 +21,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Mapster" Version="7.2.0" />
   </ItemGroup>
 	<ItemGroup>
     <Protobuf Include="ivi-sdk-proto/**/*.proto" ProtoRoot="ivi-sdk-proto" OutputDir="$(Protobuf_OutputPath)%(RelativeDir)" CompileOutputs="TRUE" GrpcServices="Client" />
