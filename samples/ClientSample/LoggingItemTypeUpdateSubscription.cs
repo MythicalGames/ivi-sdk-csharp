@@ -7,9 +7,9 @@ namespace ClientSample
 {
     public class LoggingItemTypeUpdateSubscription : IVIItemTypeExecutor
     {
-        private readonly ILogger<IVIItemTypeClient> _logger;
+        private readonly ILogger<IviItemTypeClient> _logger;
 
-        public LoggingItemTypeUpdateSubscription(ILogger<IVIItemTypeClient> logger) => _logger = logger;
+        public LoggingItemTypeUpdateSubscription(ILogger<IviItemTypeClient> logger) => _logger = logger;
         
         public void UpdateItemType(string gameItemTypeId, int currentSupply, int issuedSupply, string baseUri, int issueTimeSpan,
             string trackingId, ItemTypeState itemTypeState)
@@ -17,7 +17,7 @@ namespace ClientSample
             _logger.LogInformation("ItemType Update: {@UpdateItemTypeData}", new UpdateItemTypeData(gameItemTypeId, currentSupply, issuedSupply, baseUri, issueTimeSpan, trackingId, itemTypeState));
         }
 
-        public void UpdateItemTypeStatus(string gameItemTypeId, string trackingId, ItemTypeState itemTypeState)
+        public void SavedItemTypeStatus(string gameItemTypeId, string trackingId, ItemTypeState itemTypeState)
         {
             _logger.LogInformation("ItemTypeStatus Update: {@UpdateItemTypeData}", new UpdateItemTypeStatusData(gameItemTypeId, trackingId, itemTypeState));
         }

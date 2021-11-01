@@ -6,6 +6,7 @@ using Ivi.Proto.Common;
 using Ivi.Proto.Common.Sort;
 using IviSdkCsharp.Client.Executor;
 using Microsoft.Extensions.Logging;
+using Mythical.Game.IviSdkCSharp.Mapper;
 using Mythical.Game.IviSdkCSharp.Model;
 
 namespace ClientSample
@@ -16,6 +17,7 @@ namespace ClientSample
         {
             Setup setup = new ();
             setup.SetIviConfiguration();
+            MappersConfig.RegisterMappings();
 
             await PlayerClient_Usage(setup);
             await ItemTypeClient_Usage(setup);
@@ -37,9 +39,9 @@ namespace ClientSample
 
         private static async Task ItemTypeClient_Usage(Setup setup)
         {
-            var logger = setup.CreateLogger<IVIItemTypeClient>();
+            var logger = setup.CreateLogger<IviItemTypeClient>();
 
-            var itemTypeClient = new IVIItemTypeClient(logger)
+            var itemTypeClient = new IviItemTypeClient(logger)
             {
                 UpdateSubscription = new LoggingItemTypeUpdateSubscription(logger)
             };
@@ -64,7 +66,7 @@ namespace ClientSample
                 Burnable = true,
                 Transferable = true,
                 Sellable = true,
-                Metadata = iviMetadata
+                //Metadata = iviMetadata
             };
 
             await itemTypeClient.CreateItemTypeAsync(iviItemType);

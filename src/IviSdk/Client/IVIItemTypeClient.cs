@@ -114,7 +114,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
         {
             _logger?.LogDebug("ItemTypeClient.getItemTypes called with params: gameItemTypeIds {}", gameItemTypeIds);
             try
-            {
+            { 
                 GetItemTypesRequest? request;
 
                 if (gameItemTypeIds.Any())
@@ -151,41 +151,8 @@ namespace Games.Mythical.Ivi.Sdk.Client
         {
             try
             {
-                var request = new CreateItemTypeRequest()
-                {
-                    EnvironmentId = EnvironmentId,
-                    GameItemTypeId = itemType.GameItemTypeId,
-                    TokenName = itemType.TokenName,
-                    Category = itemType.Category,
-                    MaxSupply = itemType.MaxSupply,
-                    IssueTimeSpan = itemType.IssueTimeSpan,
-                    Burnable = itemType.Burnable,
-                    Transferable = itemType.Transferable,
-                    Sellable = itemType.Sellable,
-                    Metadata = new Metadata()
-                };
-
-                if (request.Metadata != null)
-                {
-                    request.Metadata.Name = itemType.Metadata?.Name;
-                    request.Metadata.Description = itemType.Metadata?.Description;
-                    request.Metadata.Image = itemType.Metadata?.Image;
-                    
-                    Struct properties = new Struct
-                    {
-                        Fields = { }
-                    }; 
-
-                    foreach (var metadataProperty in itemType.Metadata?.Properties!)
-                    {
-                        properties.Fields.Add(metadataProperty.Key, Value.ForString(metadataProperty.Value.ToString()));
-                        //request.Metadata.Properties.Fields[metadataProperty.Key] = metadataProperty.Value as Value;
-                    }
-                    request.Metadata.Properties = properties;
-                }
-
+                var request = itemType.Adapt<CreateItemTypeRequest>();
                 _logger?.LogDebug("ItemTypeClient.CreateItemTypeAsync called with params: {request}", request);
-
 
                 var result = await Client.CreateItemTypeAsync(request, cancellationToken: cancellationToken);
                 _itemTypeExecutor?.SavedItemTypeStatus(itemType.GameItemTypeId, result.TrackingId, result.ItemTypeState);

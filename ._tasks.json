@@ -1,0 +1,17 @@
+{
+    "Title": "Batch Files",
+    "Items": [
+        {
+            "ItemNumber": 1,
+            "MenuItem": "Build",
+            "Type": "Ps",
+            "Action": "Run-Task -task_filename 'Build' -task_name 'Build'"
+        },
+		{
+            "ItemNumber": 2,
+            "MenuItem": "Run Tests",
+            "Type": "Ps",
+            "Action": "Run-Task -task_filename 'Build' -task_name 'test'"
+        }
+    ]
+}
