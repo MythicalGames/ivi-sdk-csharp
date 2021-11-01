@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using System.Xml.Serialization;
+using Google.Protobuf.WellKnownTypes;
 using Ivi.Proto.Api.Itemtype;
 using Ivi.Proto.Common;
 using Mapster;
@@ -19,21 +20,29 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                 .Map(dest => dest.Burnable, src => src.Burnable)
                 .Map(dest => dest.Transferable, src => src.Transferable)
                 .Map(dest => dest.Sellable, src => src.Sellable)
-                .Map(dest => dest.Metadata, src => src.Metadata);
+                .Map(dest => dest.Metadata, src => new Metadata())
+                .AfterMapping((src, dest) =>
+                {
+                     // dest.Metadata.Name = src.Metadata?.Name;
+                     // dest.Metadata.Description = src.Metadata?.Description;
+                     // dest.Metadata.Image = src.Metadata?.Image;
+                     src.Metadata.Adapt(dest.Metadata);
+                })
+                .Compile(); 
 
             TypeAdapterConfig<IviMetadata, Metadata>.NewConfig()
                 .Map(dest => dest.Name, src => src.Name)
                 .Map(dest => dest.Description, src => src.Description)
                 .Map(dest => dest.Image, src => src.Image) 
+                .Map(dest => dest.Properties, src => new Struct() { Fields = { } }) 
                 .AfterMapping((src, dest) =>
                 {
-                    Struct properties = new() {Fields = { }};
+                    //dest.Properties = new Struct() {Fields = { }};
                     foreach (var metadataProperty in src.Properties)
                     {
-                        properties.Fields.Add(metadataProperty.Key, Value.ForString(metadataProperty.Value.ToString()));
+                        dest.Properties.Fields.Add(metadataProperty.Key, Value.ForString(metadataProperty.Value.ToString()));
                     }
-                    dest.Properties = properties;
-                });
+                }).Compile(); 
         }
     }
 }

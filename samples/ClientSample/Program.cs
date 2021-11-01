@@ -58,15 +58,15 @@ namespace ClientSample
 
             var iviItemType = new IviItemType
             {
-                GameItemTypeId = "itemType.GameItemTypeId",
-                TokenName = "itemType.TokenName",
+                GameItemTypeId = "itemType.GameItemTypeId2",
+                TokenName = "itemType.TokenName2",
                 Category = "itemType.Category",
                 MaxSupply = 1000,
                 IssueTimeSpan = 0,
                 Burnable = true,
                 Transferable = true,
                 Sellable = true,
-                //Metadata = iviMetadata
+                Metadata = iviMetadata
             };
 
             await itemTypeClient.CreateItemTypeAsync(iviItemType);
