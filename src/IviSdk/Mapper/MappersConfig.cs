@@ -23,9 +23,6 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                 .Map(dest => dest.Metadata, src => new Metadata())
                 .AfterMapping((src, dest) =>
                 {
-                     // dest.Metadata.Name = src.Metadata?.Name;
-                     // dest.Metadata.Description = src.Metadata?.Description;
-                     // dest.Metadata.Image = src.Metadata?.Image;
                      src.Metadata.Adapt(dest.Metadata);
                 })
                 .Compile(); 
@@ -37,7 +34,6 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                 .Map(dest => dest.Properties, src => new Struct() { Fields = { } }) 
                 .AfterMapping((src, dest) =>
                 {
-                    //dest.Properties = new Struct() {Fields = { }};
                     foreach (var metadataProperty in src.Properties)
                     {
                         dest.Properties.Fields.Add(metadataProperty.Key, Value.ForString(metadataProperty.Value.ToString()));
