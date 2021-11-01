@@ -4,9 +4,9 @@ using Ivi.Proto.Api.Player;
 using Ivi.Proto.Common.Player;
 using Ivi.Rpc.Api.Player;
 
-namespace IviSdkCsharp.Tests.Host.Services
+namespace IviSdkCsharp.Tests.Player.Services
 {
-    public partial class PlayerServiceImplementation: PlayerService.PlayerServiceBase
+    public partial class FakePlayerService: PlayerService.PlayerServiceBase
     {
         public override Task<IVIPlayer> GetPlayer(GetPlayerRequest request, ServerCallContext context)
             => request.PlayerId switch

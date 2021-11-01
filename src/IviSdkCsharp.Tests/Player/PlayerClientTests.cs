@@ -6,7 +6,7 @@ using IviSdkCsharp.Exception;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shouldly;
 using Xunit;
-using static IviSdkCsharp.Tests.Host.Services.PlayerServiceImplementation;
+using static IviSdkCsharp.Tests.Player.Services.FakePlayerService;
 
 
 namespace IviSdkCsharp.Tests

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Ivi.Proto.Api.Itemtype;
@@ -19,19 +21,19 @@ using Metadata = Ivi.Proto.Common.Metadata;
 
 namespace Games.Mythical.Ivi.Sdk.Client
 {
-    public class IVIItemTypeClient : AbstractIVIClient
+    public class IviItemTypeClient : AbstractIVIClient
     {
-        private readonly ILogger<IVIItemTypeClient>? _logger;
+        private readonly ILogger<IviItemTypeClient>? _logger;
         private readonly IVIItemTypeExecutor? _itemTypeExecutor;
         private ItemTypeService.ItemTypeServiceClient? _client;
         private ItemTypeStatusStream.ItemTypeStatusStreamClient? _streamClient;
 
-        public IVIItemTypeClient(ILogger<IVIItemTypeClient>? logger)
+        public IviItemTypeClient(ILogger<IviItemTypeClient>? logger)
         {
             _logger = logger;
         }
 
-        internal IVIItemTypeClient(ILogger<IVIItemTypeClient>? logger, HttpClient httpClient) : base(httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient })
+        internal IviItemTypeClient(ILogger<IviItemTypeClient>? logger, HttpClient httpClient) : base(httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient })
         {
             _logger = logger;
         }
@@ -96,61 +98,97 @@ namespace Games.Mythical.Ivi.Sdk.Client
         }
 
         
-        public async Task<ItemType?> GetItemTypeAsync(string gameItemTypeId, CancellationToken cancellationToken = default)
+        public async Task<IviItemType?> GetItemTypeAsync(string gameItemTypeId, CancellationToken cancellationToken = default)
         {
             _logger?.LogDebug("ItemTypeClient.getItemType called with param: gameItemTypeId {}", gameItemTypeId);
-            var itemTypeList =  await GetItemTypesAsync(new[] {gameItemTypeId}, cancellationToken);
+            var itemTypeList =  await GetItemTypesAsync(new List<string>{gameItemTypeId}, cancellationToken);
             return itemTypeList?.Count > 0 ? itemTypeList[0] : null;
         }
 
-        public async Task<IList<ItemType>?> GetItemTypesAsync(CancellationToken cancellationToken = default)
+        public async Task<IList<IviItemType>?> GetItemTypesAsync(CancellationToken cancellationToken = default)
         {
             return await GetItemTypesAsync(new List<string>(), cancellationToken);
         }
 
-        public async Task<IList<ItemType>?> GetItemTypesAsync(IEnumerable<string> gameItemTypeIds, CancellationToken cancellationToken = default)
+        public async Task<IList<IviItemType>?> GetItemTypesAsync(List<string> gameItemTypeIds, CancellationToken cancellationToken = default)
         {
             _logger?.LogDebug("ItemTypeClient.getItemTypes called with params: gameItemTypeIds {}", gameItemTypeIds);
             try
             {
-                var request = new GetItemTypesRequest()
+                GetItemTypesRequest? request;
+
+                if (gameItemTypeIds.Any())
                 {
-                    EnvironmentId = EnvironmentId,
-                    GameItemTypeIds = { gameItemTypeIds }
-                };
+                    request = new GetItemTypesRequest()
+                    {
+                        EnvironmentId = EnvironmentId,
+                        GameItemTypeIds = { gameItemTypeIds }
+                    };
+                }
+                else
+                {
+                    request = new GetItemTypesRequest()
+                    {
+                        EnvironmentId = EnvironmentId
+                    };
+                }
 
                 var result = await Client.GetItemTypesAsync(request, cancellationToken: cancellationToken);
-                return result.ItemTypes_;
+                return result.ItemTypes_.Adapt<List<IviItemType>>();
             }
-            catch (RpcException e)
+            catch (RpcException ex)
             {
-                _logger?.LogError(e, "gRPC error from IVI server");
-                throw IVIException.FromGrpcException(e);
+                if (ex.StatusCode == StatusCode.NotFound)
+                {
+                    return null;
+                }
+                _logger?.LogError(ex, "gRPC error from IVI server");
+                throw IVIException.FromGrpcException(ex);
             }
         }
-
-        public void CreateItemTypeAsync(string gameItemTypeId, string tokenName, string category, int maxSupply, int issueTimeSpan, bool burnable, bool transferable, bool sellable, IviMetadata metadata, CancellationToken cancellationToken = default)
+        
+        public async Task CreateItemTypeAsync(IviItemType itemType, CancellationToken cancellationToken = default)
         {
             try
             {
                 var request = new CreateItemTypeRequest()
                 {
                     EnvironmentId = EnvironmentId,
-                    GameItemTypeId = gameItemTypeId,
-                    TokenName = tokenName,
-                    Category = category,
-                    MaxSupply = maxSupply,
-                    IssueTimeSpan = issueTimeSpan,
-                    Burnable = burnable,
-                    Transferable = transferable,
-                    Sellable = sellable,
-                    Metadata = metadata.Adapt<Metadata>()
+                    GameItemTypeId = itemType.GameItemTypeId,
+                    TokenName = itemType.TokenName,
+                    Category = itemType.Category,
+                    MaxSupply = itemType.MaxSupply,
+                    IssueTimeSpan = itemType.IssueTimeSpan,
+                    Burnable = itemType.Burnable,
+                    Transferable = itemType.Transferable,
+                    Sellable = itemType.Sellable,
+                    Metadata = new Metadata()
                 };
+
+                if (request.Metadata != null)
+                {
+                    request.Metadata.Name = itemType.Metadata?.Name;
+                    request.Metadata.Description = itemType.Metadata?.Description;
+                    request.Metadata.Image = itemType.Metadata?.Image;
+                    
+                    Struct properties = new Struct
+                    {
+                        Fields = { }
+                    }; 
+
+                    foreach (var metadataProperty in itemType.Metadata?.Properties!)
+                    {
+                        properties.Fields.Add(metadataProperty.Key, Value.ForString(metadataProperty.Value.ToString()));
+                        //request.Metadata.Properties.Fields[metadataProperty.Key] = metadataProperty.Value as Value;
+                    }
+                    request.Metadata.Properties = properties;
+                }
 
                 _logger?.LogDebug("ItemTypeClient.CreateItemTypeAsync called with params: {request}", request);
 
 
-                Client.CreateItemTypeAsync(request, cancellationToken: cancellationToken);
+                var result = await Client.CreateItemTypeAsync(request, cancellationToken: cancellationToken);
+                _itemTypeExecutor?.SavedItemTypeStatus(itemType.GameItemTypeId, result.TrackingId, result.ItemTypeState);
             }
             catch (RpcException ex)
             {

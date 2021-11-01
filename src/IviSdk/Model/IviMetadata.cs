@@ -4,17 +4,17 @@ namespace Mythical.Game.IviSdkCSharp.Model
 {
     public class IviMetadata
     {
-        private string _name;
-        private string _description;
-        private string _image;
-        private Dictionary<string, object> _properties;
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Image { get; set; }
+        public Dictionary<string, object> Properties { get; set; }
 
         public IviMetadata(string name, string description, string image, Dictionary<string, object> properties)
         {
-            _name = name;
-            _description = description;
-            _image = image;
-            _properties = properties;
+            Name = name;
+            Description = description;
+            Image = image;
+            Properties = properties;
         }
     }
 }
