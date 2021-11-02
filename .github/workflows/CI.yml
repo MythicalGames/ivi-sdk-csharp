@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
       
       - name: Run build script      
         run: .\_build\Execute-Psake.ps1 -task_file Build -task_name publish
