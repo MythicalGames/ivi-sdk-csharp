@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v2
       
       - name: Run build script      
-        run: .\_build\Execute-Psake.ps1 -task_file Build -task_name test
+        run: .\_build\Execute-Psake.ps1 -task_file Build -task_name publish
         shell: pwsh
         env:
           ASPNETCORE_ENVIRONMENT: Development
