@@ -2,7 +2,7 @@ Write-Host "Start import properties"
 properties {  
 
     $on_build_server = $false
-    if ($env:ON_BUILD_SERVER -eq 'true'){
+    if ($env:CI -eq 'true'){
         $on_build_server = $true
     }
     
@@ -16,6 +16,12 @@ properties {
 
     $solution_dir = "$build_working_dir\src"
     $solution_file = "$solution_dir\IviSdk.sln"
+
+    $sdk_csproj_path = "$solution_dir\IviSdk\IviSdkCsharp.csproj"
+    $sdk_output_path = "$solution_dir\IviSdk\bin\$($global:project_configuration)\net5.0"
+    $sdk_assembly_name = "Mythical.Game.IviSdkCSharp"
+    $sdk_dll_path = "$sdk_output_path\$($sdk_assembly_name).dll"
+    $sdk_nuget_package_output_dir = $packages_root_dir
      
     $now = Get-Date
     $logFileNameSegment = $now.ToString("yyyy_MM_dd_HH_mm_ss")

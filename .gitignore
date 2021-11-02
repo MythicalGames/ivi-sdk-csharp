@@ -390,3 +390,5 @@ FodyWeavers.xsd
 .vscode/
 
 BuildArtifacts/
+
+.notes/

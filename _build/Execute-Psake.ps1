@@ -15,3 +15,11 @@ $psakeArgs = @{
 }
 
 Invoke-psake -buildfile $PSScriptRoot/$task_filename.ps1 -task $task_name -parameters $psakeArgs
+Write-Host "psake.build_success = $($psake.build_success)"
+
+if ($psake.build_success) {
+    $global:LastExitCode = 0
+}
+else {
+    $global:LastExitCode = 1
+}
