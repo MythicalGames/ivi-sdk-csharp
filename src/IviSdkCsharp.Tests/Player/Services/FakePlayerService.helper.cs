@@ -2,7 +2,7 @@
 using System.Text.Json;
 using Ivi.Proto.Api.Player;
 using Ivi.Proto.Common.Sort;
-using IviSdkCsharp.Config;
+using Mythical.Game.IviSdkCSharp.Config;
 
 namespace IviSdkCsharp.Tests.Player.Services
 {

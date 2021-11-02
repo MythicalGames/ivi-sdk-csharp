@@ -13,9 +13,9 @@ using Ivi.Rpc.Api.Itemtype;
 using Ivi.Rpc.Streams;
 using Ivi.Rpc.Streams.Itemtype;
 using IviSdkCsharp.Client.Executor;
-using IviSdkCsharp.Exception;
 using Mapster;
 using Microsoft.Extensions.Logging;
+using Mythical.Game.IviSdkCSharp.Exception;
 using Mythical.Game.IviSdkCSharp.Model;
 using Metadata = Ivi.Proto.Common.Metadata;
 

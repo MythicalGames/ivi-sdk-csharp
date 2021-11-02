@@ -12,8 +12,8 @@ using Ivi.Rpc.Api.Player;
 using Ivi.Rpc.Streams;
 using Ivi.Rpc.Streams.Player;
 using IviSdkCsharp.Client.Executor;
-using IviSdkCsharp.Exception;
 using Microsoft.Extensions.Logging;
+using Mythical.Game.IviSdkCSharp.Exception;
 
 namespace Games.Mythical.Ivi.Sdk.Client
 {

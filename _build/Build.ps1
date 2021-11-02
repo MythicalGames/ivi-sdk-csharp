@@ -64,7 +64,7 @@ task RunXUnit {
             ,"$test_results_dir"
             ,"--dcReportType=HTML"
             ,"--dcOutput=$code_coverage_dir\CoverageReport.html"
-            ,"--dcFilters=+:module=*Mythical*;class=*;function=*;-:module=*Tests*;"
+            ,"--dcFilters=+:module=*Mythical*;-:class=Ivi.*;function=*;-:module=*Tests*;"
             )
 
     dotnet dotcover test $args       
@@ -80,6 +80,10 @@ task OpenReport {
 
 task PackNugetPackages {
     
+    Write-Host 
+    Write-Host "sdk_dll_path: $sdk_dll_path"
+    Write-Host 
+
     $version = Get-AssemblyVersion $sdk_dll_path
     $packages_version = [Version]$version
     $global:semver = $packages_version.Major.ToString() + "." + $packages_version.Minor.ToString() + "." + $packages_version.Build.ToString() + "." + $packages_version.Revision.ToString()
@@ -129,6 +133,13 @@ function Get-AssemblyVersion {
     param(
         $DllPath = ''
     )
+
+    if(Test-Path $DllPath){
+        Write-Host "found: $DllPath"
+    }
+    else{        
+        Write-Host "not found: $DllPath"
+    }
 
     $bytes = [System.IO.File]::ReadAllBytes($DllPath)
     $assembly = [System.Reflection.Assembly]::Load($bytes)

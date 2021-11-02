@@ -1,4 +1,4 @@
-﻿namespace IviSdkCsharp.Config
+﻿namespace Mythical.Game.IviSdkCSharp.Config
 {
     public class IviConfiguration
     {

@@ -3,9 +3,9 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
-using IviSdkCsharp.Config;
-using IviSdkCsharp.Exception;
 using Microsoft.Extensions.Logging;
+using Mythical.Game.IviSdkCSharp.Config;
+using Mythical.Game.IviSdkCSharp.Exception;
 
 [assembly:InternalsVisibleTo("IviSdkCsharp.Tests")]
 

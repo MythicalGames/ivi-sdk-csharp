@@ -1,7 +1,7 @@
-﻿using IviSdkCsharp.Config;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Hosting;
+using Mythical.Game.IviSdkCSharp.Config;
 
 namespace IviSdkCsharp.Tests.Host
 {

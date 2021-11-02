@@ -1,7 +1,6 @@
-﻿using System;
-using Grpc.Core;
+﻿using Grpc.Core;
 
-namespace IviSdkCsharp.Exception
+namespace Mythical.Game.IviSdkCSharp.Exception
 {
     public class IVIException : System.Exception
     {

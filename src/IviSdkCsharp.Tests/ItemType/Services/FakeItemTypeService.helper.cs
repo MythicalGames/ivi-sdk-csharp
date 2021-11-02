@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Ivi.Proto.Api.Itemtype;
 using Ivi.Proto.Common.Sort;
-using IviSdkCsharp.Config;
 using Mythical.Game.IviSdkCSharp.Model;
 
 namespace IviSdkCsharp.Tests.ItemType.Services
