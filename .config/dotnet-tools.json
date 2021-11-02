@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "dotnet-reportgenerator-globaltool": {
+      "version": "4.8.13",
+      "commands": [
+        "reportgenerator"
+      ]
+    },
+    "jetbrains.dotcover.globaltool": {
+      "version": "2021.2.2",
+      "commands": [
+        "dotnet-dotcover"
+      ]
+    },
+    "dotnet-script": {
+      "version": "1.2.1",
+      "commands": [
+        "dotnet-script"
+      ]
+    },
+    "microsoft.tye": {
+      "version": "0.10.0-alpha.21420.1",
+      "commands": [
+        "tye"
+      ]
+    }
+  }
+}
