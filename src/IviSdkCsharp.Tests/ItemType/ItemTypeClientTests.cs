@@ -66,7 +66,7 @@ namespace IviSdkCsharp.Tests
             Should.Throw<IVIException>(async () => await itemTypeClient.GetItemTypesAsync(new List<string>(){GameItemTypeIdThrow}));
         }
 
-        [Theory]
+        [Theory(Skip = "")]
         [InlineData("192.168.1.1", "192.168.1.1")]
         [InlineData("", "")]
         [InlineData(null, "")]
