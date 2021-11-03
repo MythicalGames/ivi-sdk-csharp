@@ -1,0 +1,29 @@
+{
+    "Title": "Batch Files",
+    "Items": [
+        {
+            "ItemNumber": 1,
+            "MenuItem": "Build",
+            "Type": "Ps",
+            "Action": "Run-Task -task_filename 'Build' -task_name 'Build'"
+        },
+		{
+            "ItemNumber": 2,
+            "MenuItem": "Run Tests",
+            "Type": "Ps",
+            "Action": "Run-Task -task_filename 'Build' -task_name 'test'"
+        },
+        {
+            "ItemNumber": 3,
+            "MenuItem": "View Code Coverage",
+            "Type": "Ps",
+            "Action": "Run-Task -task_filename 'Build' -task_name 'codecoverage'"
+        },
+        {
+            "ItemNumber": 4,
+            "MenuItem": "Publish Nuget Packages",
+            "Type": "Ps",
+            "Action": "Run-Task -task_filename 'Build' -task_name 'publish'"
+        }
+    ]
+}

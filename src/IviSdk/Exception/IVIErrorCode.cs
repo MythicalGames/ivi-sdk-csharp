@@ -1,4 +1,4 @@
-﻿namespace IviSdkCsharp.Exception
+﻿namespace Mythical.Game.IviSdkCSharp.Exception
 {
     public enum IVIErrorCode
     {

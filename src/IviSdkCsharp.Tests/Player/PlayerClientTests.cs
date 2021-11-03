@@ -2,11 +2,11 @@ using System.Threading.Tasks;
 using Games.Mythical.Ivi.Sdk.Client;
 using Ivi.Proto.Common.Player;
 using Ivi.Proto.Common.Sort;
-using IviSdkCsharp.Exception;
 using Microsoft.Extensions.Logging.Abstractions;
+using Mythical.Game.IviSdkCSharp.Exception;
 using Shouldly;
 using Xunit;
-using static IviSdkCsharp.Tests.Host.Services.PlayerServiceImplementation;
+using static IviSdkCsharp.Tests.Player.Services.FakePlayerService;
 
 
 namespace IviSdkCsharp.Tests

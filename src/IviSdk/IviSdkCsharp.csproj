@@ -4,13 +4,19 @@
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<PackageId>Mythical.Game.IviSdkCSharp</PackageId>
-		<Version></Version>
-		<Authors>Mythical Games, Inc.</Authors>
-		<Company>Mythical Games, Inc.</Company>
+    <PackageId>Mythical.Game.IviSdkCSharp</PackageId>
+    <RepositoryUrl>https://github.com/MythicalGames/ivi-sdk-csharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Version></Version>
+    <Authors>Mythical Games, Inc.</Authors>
+    <Company>Mythical Games, Inc.</Company>
     <AssemblyName>Mythical.Game.IviSdkCSharp</AssemblyName>
     <RootNamespace>Mythical.Game.IviSdkCSharp</RootNamespace>
-		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NoWarn>1701;1702;CS0436</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,14 +27,15 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Mapster" Version="7.2.0" />
   </ItemGroup>
-	<ItemGroup>
+  <ItemGroup>
     <Protobuf Include="ivi-sdk-proto/**/*.proto" ProtoRoot="ivi-sdk-proto" OutputDir="$(Protobuf_OutputPath)%(RelativeDir)" CompileOutputs="TRUE" GrpcServices="Client" />
   </ItemGroup>
-	<ItemGroup>
-	  <Compile Include="..\..\SharedConfig\CommonAssemblyInfo.cs" Link="CommonAssemblyInfo.cs" />
-	</ItemGroup>
-<Target Name="PackAndPublishNuget" AfterTargets="Build" Condition="'$(Configuration)'=='Debug'">
-  <Exec Command="powershell.exe -noprofile -command &quot;&amp; {..\..\_build\PackAndPublishNuget.ps1 -configuration '$(Configuration)' -output_path '$(OutputPath)' -csproj_path '$(MSBuildProjectFullPath)' -assembly_name '$(AssemblyName)'}&quot;" />
-</Target> 
+  <ItemGroup>
+    <Compile Include="..\..\SharedConfig\CommonAssemblyInfo.cs" Link="CommonAssemblyInfo.cs" />
+  </ItemGroup>
+  <Target Name="PackAndPublishNuget" AfterTargets="Build" Condition="'$(Configuration)'=='Debug'">
+    <Exec Command="powershell.exe -noprofile -command &quot;&amp; {..\..\_build\PackAndPublishNuget.ps1 -configuration '$(Configuration)' -output_path '$(OutputPath)' -csproj_path '$(MSBuildProjectFullPath)' -assembly_name '$(AssemblyName)'}&quot;" />
+  </Target>
 </Project>

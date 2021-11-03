@@ -10,13 +10,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: 'true'
       
       - name: Run build script      
-        run: .\_build\Execute-Psake.ps1 -task_file Build -task_name test
+        run: .\_build\Execute-Psake.ps1 -task_file Build -task_name publish
         shell: pwsh
         env:
           ASPNETCORE_ENVIRONMENT: Development
+          NUGET_USERNAME: "mythical-buildbot"
+          NUGET_PASSWORD: ${{ secrets.BUILDBOT_PERSONAL_TOKEN }}
+          NUGET_PUBLISH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test Report 
         uses: dorny/test-reporter@v1

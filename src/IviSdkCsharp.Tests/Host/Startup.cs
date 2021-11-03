@@ -1,5 +1,6 @@
 using System.Security.Authentication;
-using IviSdkCsharp.Tests.Host.Services;
+using IviSdkCsharp.Tests.ItemType.Services;
+using IviSdkCsharp.Tests.Player.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,8 @@ namespace IviSdkCsharp.Tests.Host
             });
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<PlayerServiceImplementation>();
+                endpoints.MapGrpcService<FakePlayerService>();
+                endpoints.MapGrpcService<FakeItemTypeService>();
             });
         }
     }

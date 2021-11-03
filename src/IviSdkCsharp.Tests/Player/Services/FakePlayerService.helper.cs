@@ -2,11 +2,11 @@
 using System.Text.Json;
 using Ivi.Proto.Api.Player;
 using Ivi.Proto.Common.Sort;
-using IviSdkCsharp.Config;
+using Mythical.Game.IviSdkCSharp.Config;
 
-namespace IviSdkCsharp.Tests.Host.Services
+namespace IviSdkCsharp.Tests.Player.Services
 {
-    public partial class PlayerServiceImplementation
+    public partial class FakePlayerService
     {
         public const string PlayerIdExisting = "Ninja";
         public const string PlayerIdNotFound = "Not found";

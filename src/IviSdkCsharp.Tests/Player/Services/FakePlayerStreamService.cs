@@ -3,9 +3,9 @@ using Grpc.Core;
 using Ivi.Rpc.Streams;
 using Ivi.Rpc.Streams.Player;
 
-namespace IviSdkCsharp.Tests.Host.Services
+namespace IviSdkCsharp.Tests.Player.Services
 {
-    public class PlayerStreamImplementation : PlayerStream.PlayerStreamBase
+    public class FakePlayerStreamService : PlayerStream.PlayerStreamBase
     {
         public override Task PlayerStatusStream(Subscribe request, IServerStreamWriter<PlayerStatusUpdate> responseStream, ServerCallContext context)
         {
