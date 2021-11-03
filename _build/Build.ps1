@@ -56,8 +56,9 @@ task RunXUnit {
 
     Push-Location -Path $solution_dir     
     
-    $args = @(            
-            "--logger"
+    $args = @(   
+            "--configuration=$global:project_configuration"         
+            ,"--logger"
             ,"trx;LogFileName=TestResults.trx"
             ,"--logger"
             ,"xunit;LogFileName=TestResults.xml"
