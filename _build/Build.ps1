@@ -141,6 +141,8 @@ function Get-AssemblyVersion {
         Write-Host "not found: $DllPath"
     }
 
+    gci $sdk_output_path
+
     $bytes = [System.IO.File]::ReadAllBytes($DllPath)
     $assembly = [System.Reflection.Assembly]::Load($bytes)
 
