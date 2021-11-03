@@ -7,7 +7,7 @@ FormatTaskName "$([Environment]::NewLine)==================== $(Get-Date -format
 task build -depends PrintInformation, CompileSolutions
 task test -depends PrintInformation, CompileSolutions, InstallTestDependencies, RunXUnit
 task codecoverage -depends PrintInformation, CreateArtifactsFolder, CompileSolutions, InstallTestDependencies, RunXUnit, OpenReport
-task publish -depends PrintInformation, CreateArtifactsFolder, CompileSolutions, InstallTestDependencies, PackNugetPackages, PublishNugetPackages
+task publish -depends PrintInformation, CreateArtifactsFolder, CompileSolutions, InstallTestDependencies, RunXUnit, PackNugetPackages, PublishNugetPackages
 
 task PrintInformation { 
     $timestamp = "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
