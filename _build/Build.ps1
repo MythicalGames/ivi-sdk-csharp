@@ -26,7 +26,8 @@ task PrintInformation {
     Write-Host "env:CI: $env:CI"
     Write-Host "env:GITHUB_WORKFLOW: $env:GITHUB_WORKFLOW"
     Write-Host "env:GITHUB_RUN_ID: $env:GITHUB_RUN_ID"
-    Write-Host "env:GITHUB_RUN_NUMBER: $env:GITHUB_RUN_NUMBER"
+    Write-Host "env:GITHUB_RUN_NUMBER: $env:GITHUB_RUN_NUMBER"    
+    gci env:
     Write-Host '##########################################'
 }
 
@@ -141,8 +142,10 @@ function Get-AssemblyVersion {
         Write-Host "not found: $DllPath"
     }
 
-    gci $sdk_output_path
-
+    Write-Host "bin - "
+    Get-ChildItem -Path $sdk_output_path
+    Write-Host '##########################################'
+    
     $bytes = [System.IO.File]::ReadAllBytes($DllPath)
     $assembly = [System.Reflection.Assembly]::Load($bytes)
 
