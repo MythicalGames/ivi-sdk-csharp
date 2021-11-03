@@ -13,6 +13,7 @@ task PrintInformation {
     $timestamp = "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
     Remove-Item $global:logSettings.logFilePath -Recurse -Force -ErrorAction SilentlyContinue
     Write-Host '##########################################'
+    Write-Host "VerbosePreference is set to: $VerbosePreference"
     Write-Host 'Build started'
     Write-Host $timestamp
     #Write-Host $([Environment]::NewLine)
@@ -86,6 +87,9 @@ task PackNugetPackages {
     Write-Host "sdk_dll_path: $sdk_dll_path"
     Write-Host 
 
+    
+    Write-Host "VerbosePreference is set to: $VerbosePreference"
+    
     $version = Get-AssemblyVersion $sdk_dll_path
     $packages_version = [Version]$version
     $global:semver = $packages_version.Major.ToString() + "." + $packages_version.Minor.ToString() + "." + $packages_version.Build.ToString() + "." + $packages_version.Revision.ToString()
@@ -136,6 +140,9 @@ function Get-AssemblyVersion {
         $DllPath = ''
     )
 
+    
+    Write-Host "VerbosePreference is set to: $VerbosePreference"
+
     if(Test-Path $DllPath){
         Write-Host "found: $DllPath"
     }
@@ -144,7 +151,7 @@ function Get-AssemblyVersion {
     }
 
     Write-Host "bin - "
-    Get-ChildItem -Path $sdk_output_path
+    Get-ChildItem -Path "$solution_dir\IviSdk" -Recurse -Verbose
     Write-Host '##########################################'
     
     $bytes = [System.IO.File]::ReadAllBytes($DllPath)
