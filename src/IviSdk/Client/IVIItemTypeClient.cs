@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using IviSdkCsharp.Client.Executor;
-using IviSdkCsharp.Exception;
-using Mapster;
 using Microsoft.Extensions.Logging;
 using Mythical.Game.IviSdkCSharp;
-using Mythical.Game.IviSdkCSharp.Model;
+using Mythical.Game.IviSdkCSharp.Exception;
 using ProtoBuf.Grpc.Client;
 using Metadata = Mythical.Game.IviSdkCSharp.Metadata;
 

@@ -44,7 +44,7 @@ namespace Mythical.Game.IviSdkCSharp.Exception
             return BuildIviException(exception.StatusCode, exception.Trailers, exception.Message);
         }
         
-        private static IVIException BuildIviException(StatusCode statusCode, Metadata metadata, string message)
+        private static IVIException BuildIviException(StatusCode statusCode, Grpc.Core.Metadata metadata, string message)
         {
         
             // GRPC Status doesn't handle all http codes, so check if one was added

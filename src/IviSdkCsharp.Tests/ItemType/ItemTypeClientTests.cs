@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Games.Mythical.Ivi.Sdk.Client;
-using IviSdkCsharp.Exception;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mythical.Game.IviSdkCSharp;
-using Mythical.Game.IviSdkCSharp.Model;
+using Mythical.Game.IviSdkCSharp.Exception;
 using Shouldly;
 using Xunit;
 using static IviSdkCsharp.Tests.ItemType.Services.FakeItemTypeService;
