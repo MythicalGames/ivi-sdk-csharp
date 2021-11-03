@@ -7,7 +7,7 @@ FormatTaskName "$([Environment]::NewLine)==================== $(Get-Date -format
 task build -depends PrintInformation, CompileSolutions
 task test -depends PrintInformation, CompileSolutions, InstallTestDependencies, RunXUnit
 task codecoverage -depends PrintInformation, CreateArtifactsFolder, CompileSolutions, InstallTestDependencies, RunXUnit, OpenReport
-task publish -depends PrintInformation, CreateArtifactsFolder, CompileSolutions, PackNugetPackages, PublishNugetPackages
+task publish -depends PrintInformation, CreateArtifactsFolder, CompileSolutions, InstallTestDependencies, RunXUnit, PackNugetPackages, PublishNugetPackages
 
 task PrintInformation { 
     $timestamp = "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
@@ -96,14 +96,20 @@ task PackNugetPackages {
 task PublishNugetPackages {
     
     $sdk_nuget_package_path = "$($sdk_nuget_package_output_dir)\$($sdk_assembly_name).$($global:semver).nupkg"
+    $apiKey = $env:NUGET_PUBLISH_TOKEN
 
     Write-Host 
     Write-Host "sdk_nuget_package_output_path: $sdk_nuget_package_output_dir"
     Write-Host "sdk_nuget_package_path: $sdk_nuget_package_path"
+    Write-Host "apikey: $apiKey"
     Write-Host 
 
     if ($on_build_server) {
-        dotnet nuget push $sdk_nuget_package_path -s "github"
+        dotnet nuget push $sdk_nuget_package_path -s "github" --api-key $apiKey
+    }
+    else{
+        $local_nuget = [System.Environment]::GetEnvironmentVariable('MYTHICAL_LOCAL_NUGET')
+        Copy-Item -Path $sdk_nuget_package_path -Destination $local_nuget
     }
 }
 

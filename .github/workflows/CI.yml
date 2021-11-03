@@ -20,6 +20,7 @@ jobs:
         shell: pwsh
         env:
           ASPNETCORE_ENVIRONMENT: Development
+          NUGET_USERNAME: "mythical-buildbot"
           NUGET_PUBLISH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_RESTORE_TOKEN: ${{ secrets.BUILDBOT_PERSONAL_TOKEN }}
 

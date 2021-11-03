@@ -5,7 +5,7 @@ properties {
     if ($env:CI -eq 'true'){
         $on_build_server = $true
     }
-    
+
     $dotnetExe = "dotnet"
     $global:project_configuration = "Debug"
     if ($on_build_server) {
