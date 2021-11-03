@@ -1,5 +1,5 @@
 
-$properties = "$PSScriptRoot\Properties.ps1"
+$properties = "$PSScriptRoot/Properties.ps1"
 .$properties
 
 FormatTaskName "$([Environment]::NewLine)==================== $(Get-Date -format T) - Executing {0} ====================" 
@@ -64,7 +64,7 @@ task RunXUnit {
             ,"--results-directory"
             ,"$test_results_dir"
             ,"--dcReportType=HTML"
-            ,"--dcOutput=$code_coverage_dir\CoverageReport.html"
+            ,"--dcOutput=$code_coverage_dir/CoverageReport.html"
             ,"--dcFilters=+:module=*Mythical*;-:class=Ivi.*;function=*;-:module=*Tests*;"
             )
 
@@ -75,7 +75,7 @@ task RunXUnit {
 
 task OpenReport {
 
-    Start-Process $code_coverage_dir\CoverageReport.html
+    Start-Process $code_coverage_dir/CoverageReport.html
 
 }
 
@@ -95,7 +95,7 @@ task PackNugetPackages {
 
 task PublishNugetPackages {
     
-    $sdk_nuget_package_path = "$($sdk_nuget_package_output_dir)\$($sdk_assembly_name).$($global:semver).nupkg"
+    $sdk_nuget_package_path = "$($sdk_nuget_package_output_dir)/$($sdk_assembly_name).$($global:semver).nupkg"
     $apiKey = $env:NUGET_PUBLISH_TOKEN
 
     Write-Host 
