@@ -56,7 +56,7 @@ task RunXUnit {
     Push-Location -Path $solution_dir     
     
     $args = @(   
-            "--configuration=$global:project_configuration"         
+            "--configuration=$($global:project_configuration)"         
             ,"--logger"
             ,"trx;LogFileName=TestResults.trx"
             ,"--logger"
@@ -81,15 +81,7 @@ task OpenReport {
 
 task PackNugetPackages {
     
-    Write-Host 
-    Write-Host "sdk_dll_path: $sdk_dll_path"
-    Write-Host 
-
-    
-    Write-Host "VerbosePreference is set to: $VerbosePreference"
-
-    $version = Get-AssemblyVersion $sdk_dll_path
-    $packages_version = [Version]$version
+    $packages_version = Get-AssemblyVersion $sdk_dll_path
     $global:semver = $packages_version.Major.ToString() + "." + $packages_version.Minor.ToString() + "." + $packages_version.Build.ToString() + "." + $packages_version.Revision.ToString()
 
     Write-Host 
@@ -160,6 +152,6 @@ function Get-AssemblyVersion {
     $version = $assembly.version
 
     Write-Host -Object "assembly.version: $version"
-    return $version
+    return [Version]$version
 }
 
