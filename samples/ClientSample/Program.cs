@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Games.Mythical.Ivi.Sdk.Client;
+using Google.Protobuf.WellKnownTypes;
 using Ivi.Proto.Common.Sort;
 using Microsoft.Extensions.Logging;
+using Mythical.Game.IviSdkCSharp;
 using Mythical.Game.IviSdkCSharp.Mapper;
-using Mythical.Game.IviSdkCSharp.Model;
+// using Mythical.Game.IviSdkCSharp.Model;
 
 namespace ClientSample
 {
@@ -43,7 +45,6 @@ namespace ClientSample
             {
                 UpdateSubscription = new LoggingItemTypeUpdateSubscription(logger)
             };
-
             var metadataProperties = new Dictionary<string, object>
             {
                 {"base_price_usd", 1000},
@@ -52,9 +53,13 @@ namespace ClientSample
                 {"item_class", "the class"}
             };
 
-            var iviMetadata = new IviMetadata("name", "desc", "sdsfs", metadataProperties);
+            var iviMetadata = new Metadata{
+                Name = "name",
+                Description = "desc",
+                Image = "sdsfs", 
+                Properties = metadataProperties};
 
-            var iviItemType = new IviItemType
+            var iviItemType = new CreateItemTypeRequest
             {
                 GameItemTypeId = "itemType.GameItemTypeId2",
                 TokenName = "itemType.TokenName2",
