@@ -1,10 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Games.Mythical.Ivi.Sdk.Client;
-using Ivi.Proto.Common.Itemtype;
-using Ivi.Proto.Common.Sort;
+using IviSdkCsharp.Exception;
 using Microsoft.Extensions.Logging.Abstractions;
-using Mythical.Game.IviSdkCSharp.Exception;
+using Mythical.Game.IviSdkCSharp;
 using Mythical.Game.IviSdkCSharp.Model;
 using Shouldly;
 using Xunit;
@@ -41,7 +41,7 @@ namespace IviSdkCsharp.Tests
         }
         
         [Fact]
-        public async Task GetItemTypeAsync_gRPCServiceThrows_ThrowsIVIException()
+        public void GetItemTypeAsync_gRPCServiceThrows_ThrowsIVIException()
         {
             var itemTypeClient = new IviItemTypeClient(NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
             
@@ -66,25 +66,21 @@ namespace IviSdkCsharp.Tests
             Should.Throw<IVIException>(async () => await itemTypeClient.GetItemTypesAsync(new List<string>(){GameItemTypeIdThrow}));
         }
 
-        // [Theory(Skip = "")]
-        // [InlineData("192.168.1.1", "192.168.1.1")]
-        // [InlineData("", "")]
-        // [InlineData(null, "")]
-        // [InlineData(" ", "")]
-        // [InlineData("\t", "")]
-        // public async Task CreateItemTypeAsync_ValidInput_CreatesItemType(string passedIpAddress, string expectedIpAddress)
-        // {
-        //     var executor = new MockItemTypeExecutor();
-        //     var itemTypeClient = new IviItemTypeClient(null, _fixture.Client)
-        //     {
-        //         UpdateSubscription = executor
-        //     };
-        //
-        //     var expectedCall = new MockItemTypeExecutor.UpdateItemTypeCall(GameItemTypeIdNew, expectedIpAddress, ItemTypeState.PendingCreate);
-        //
-        //     await itemTypeClient.CreateItemTypeAsync(new IviItemType {GameItemTypeId = GameItemTypeIdNew, TrackingId = passedIpAddress });
-        //
-        //     executor.LastCall.ShouldBe(expectedCall);
-        // }
+        [Fact]
+        public async Task CreateItemTypeAsync_ValidInput_CreatesItemType()
+        {
+            var executor = new MockItemTypeExecutor();
+            var itemTypeClient = new IviItemTypeClient(null, _fixture.Client)
+            {
+                UpdateSubscription = executor
+            };
+
+            var trackingId = "I'm tracking id";
+            var expectedCall = new MockItemTypeExecutor.UpdateItemTypeCall(GameItemTypeIdNew, trackingId, ItemTypeState.PendingCreate);
+
+            await itemTypeClient.CreateItemTypeAsync(new CreateItemTypeRequest {GameItemTypeId = GameItemTypeIdNew, TokenName = trackingId});
+
+            executor.LastCall.ShouldBe(expectedCall);
+        }
     }
 }

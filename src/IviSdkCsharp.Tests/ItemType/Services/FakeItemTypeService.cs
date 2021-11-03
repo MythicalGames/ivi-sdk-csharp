@@ -1,55 +1,57 @@
 ﻿using System.Threading.Tasks;
 using Grpc.Core;
-using Ivi.Proto.Api.Itemtype;
-using Ivi.Proto.Api.Player;
-using Ivi.Proto.Common.Itemtype;
-using Ivi.Proto.Common.Player;
-using Ivi.Rpc.Api.Itemtype;
+using Mythical.Game.IviSdkCSharp;
+using ProtoBuf.Grpc;
 
 namespace IviSdkCsharp.Tests.ItemType.Services
 {
-    public partial class FakeItemTypeService: ItemTypeService.ItemTypeServiceBase
+    public partial class FakeItemTypeService: IItemTypeService
     {
-        public Task<Ivi.Proto.Api.Itemtype.ItemType> GetItemType(GetItemTypesRequest request, ServerCallContext context)
+        public ValueTask<CreateItemResponse> CreateItemTypeAsync(CreateItemTypeRequest request, CallContext context = default)
         {
-            return request.GameItemTypeIds[0] switch
+            return ValueTask.FromResult(new CreateItemResponse
             {
-                GameItemTypeIdExisting => Task.FromResult(new Ivi.Proto.Api.Itemtype.ItemType()
-                {
-                    GameItemTypeId = GameItemTypeIdExisting,
-                    Category = "some category"
-                }),
-                GameItemTypeIdThrow => throw new System.Exception(),
-                _ => throw new RpcException(new Status(StatusCode.NotFound, string.Empty))
-            };
+                ItemTypeState = ItemTypeState.PendingCreate,
+                GameItemTypeId = request.GameItemTypeId,
+                TrackingId = request.TokenName
+            });
         }
 
-        public override Task<ItemTypes> GetItemTypes(GetItemTypesRequest request, ServerCallContext context)
+        public ValueTask<ItemTypes> GetItemTypesAsync(GetItemTypesRequest request, CallContext context = default)
         {
             if (request.GameItemTypeIds.Count == 0)
             {
-                return Task.FromResult(DefaultItemTypes);
+                return ValueTask.FromResult(DefaultItemTypes);
             }
-
+            
             if (request.GameItemTypeIds.Count == 1)
             {
                 var itemTypes = new ItemTypes();
-                var itemType = GetItemType(request, context).Result;
-                itemTypes.ItemTypes_.Add(itemType);
-
-                return Task.FromResult(itemTypes);
+                var toAdd = request.GameItemTypeIds[0] switch
+                {
+                    GameItemTypeIdExisting => new Mythical.Game.IviSdkCSharp.ItemType
+                    {
+                        GameItemTypeId = GameItemTypeIdExisting,
+                        Category = "some category"
+                    },
+                    GameItemTypeIdThrow => throw new System.Exception(),
+                    _ => throw new RpcException(new Status(StatusCode.NotFound, string.Empty))
+                };
+                itemTypes.item_types.Add(toAdd);
+                return ValueTask.FromResult(itemTypes);
             }
-
+            
             throw new System.Exception("Only return data when get pre-configured request");
         }
 
-        public override Task<CreateItemAsyncResponse> CreateItemType(CreateItemTypeRequest request, ServerCallContext context)
+        public ValueTask<FreezeItemTypeResponse> FreezeItemTypeAsync(FreezeItemTypeRequest value, CallContext context = default)
         {
-            return Task.FromResult(new CreateItemAsyncResponse
-            {
-                ItemTypeState = ItemTypeState.PendingCreate,
-                GameItemTypeId = request.GameItemTypeId
-            });
+            throw new System.NotImplementedException();
+        }
+
+        public ValueTask UpdateItemTypeMetadataAsync(UpdateItemTypeMetadataPayload value, CallContext context = default)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json;
-using Ivi.Proto.Api.Itemtype;
-using Ivi.Proto.Common.Sort;
-using Mythical.Game.IviSdkCSharp.Model;
+﻿using Mythical.Game.IviSdkCSharp;
 
 namespace IviSdkCsharp.Tests.ItemType.Services
 {
@@ -23,9 +18,9 @@ namespace IviSdkCsharp.Tests.ItemType.Services
                 if (_defaultItemTypes == null)
                 {
                     _defaultItemTypes = new ItemTypes();
-                    _defaultItemTypes.ItemTypes_.Add(new Ivi.Proto.Api.Itemtype.ItemType(){GameItemTypeId = GameItemTypeIdExisting, Category = "Player", BaseUri = "", CurrentSupply = 100});
-                    _defaultItemTypes.ItemTypes_.Add(new Ivi.Proto.Api.Itemtype.ItemType(){GameItemTypeId = "Kicker", Category = "Player", BaseUri = "", CurrentSupply = 100});
-                    _defaultItemTypes.ItemTypes_.Add(new Ivi.Proto.Api.Itemtype.ItemType(){GameItemTypeId = "Coach", Category = "Person", BaseUri = "", CurrentSupply = 100});
+                    _defaultItemTypes.item_types.Add(new Mythical.Game.IviSdkCSharp.ItemType {GameItemTypeId = GameItemTypeIdExisting, Category = "Player", BaseUri = "", CurrentSupply = 100});
+                    _defaultItemTypes.item_types.Add(new Mythical.Game.IviSdkCSharp.ItemType {GameItemTypeId = "Kicker", Category = "Player", BaseUri = "", CurrentSupply = 100});
+                    _defaultItemTypes.item_types.Add(new Mythical.Game.IviSdkCSharp.ItemType {GameItemTypeId = "Coach", Category = "Person", BaseUri = "", CurrentSupply = 100});
                 }
 
                 return _defaultItemTypes;

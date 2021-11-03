@@ -28,9 +28,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Mapster" Version="7.2.0" />
+    <PackageReference Include="protobuf-net" Version="3.0.101" />
+    <PackageReference Include="protobuf-net.Grpc" Version="1.0.152" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="4.8.1" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf Include="ivi-sdk-proto/**/*.proto" ProtoRoot="ivi-sdk-proto" OutputDir="$(Protobuf_OutputPath)%(RelativeDir)" CompileOutputs="TRUE" GrpcServices="Client" />
+    <Protobuf Include="ivi-sdk-proto/**/*.proto" Exclude="ivi-sdk-proto/**/itemtype/**.proto" ProtoRoot="ivi-sdk-proto" OutputDir="$(Protobuf_OutputPath)%(RelativeDir)" CompileOutputs="TRUE" GrpcServices="Client" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\SharedConfig\CommonAssemblyInfo.cs" Link="CommonAssemblyInfo.cs" />

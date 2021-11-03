@@ -27,18 +27,18 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                 })
                 .Compile(); 
 
-            TypeAdapterConfig<IviMetadata, Metadata>.NewConfig()
-                .Map(dest => dest.Name, src => src.Name)
-                .Map(dest => dest.Description, src => src.Description)
-                .Map(dest => dest.Image, src => src.Image) 
-                .Map(dest => dest.Properties, src => new Struct() { Fields = { } }) 
-                .AfterMapping((src, dest) =>
-                {
-                    foreach (var metadataProperty in src.Properties)
-                    {
-                        dest.Properties.Fields.Add(metadataProperty.Key, Value.ForString(metadataProperty.Value.ToString()));
-                    }
-                }).Compile(); 
+            // TypeAdapterConfig<IviMetadata, Metadata>.NewConfig()
+            //     .Map(dest => dest.Name, src => src.Name)
+            //     .Map(dest => dest.Description, src => src.Description)
+            //     .Map(dest => dest.Image, src => src.Image) 
+            //     .Map(dest => dest.Properties, src => new Struct() { Fields = { } }) 
+            //     .AfterMapping((src, dest) =>
+            //     {
+            //         foreach (var metadataProperty in src.Properties)
+            //         {
+            //             dest.Properties.Fields.Add(metadataProperty.Key, Value.ForString(metadataProperty.Value.ToString()));
+            //         }
+            //     }).Compile(); 
         }
     }
 }
