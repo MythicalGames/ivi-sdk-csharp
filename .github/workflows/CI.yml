@@ -21,8 +21,8 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Development
           NUGET_USERNAME: "mythical-buildbot"
+          NUGET_PASSWORD: ${{ secrets.BUILDBOT_PERSONAL_TOKEN }}
           NUGET_PUBLISH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NUGET_RESTORE_TOKEN: ${{ secrets.BUILDBOT_PERSONAL_TOKEN }}
 
       - name: Test Report 
         uses: dorny/test-reporter@v1
