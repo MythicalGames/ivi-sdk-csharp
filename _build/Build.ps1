@@ -7,7 +7,7 @@ FormatTaskName "$([Environment]::NewLine)==================== $(Get-Date -format
 task build -depends PrintInformation, CompileSolutions
 task test -depends PrintInformation, CompileSolutions, InstallTestDependencies, RunXUnit
 task codecoverage -depends PrintInformation, CreateArtifactsFolder, CompileSolutions, InstallTestDependencies, RunXUnit, OpenReport
-task publish -depends PrintInformation, CreateArtifactsFolder, CompileSolutions, InstallTestDependencies, RunXUnit, PackNugetPackages, PublishNugetPackages
+task publish -depends PrintInformation, CreateArtifactsFolder, CompileSolutions, PackNugetPackages, PublishNugetPackages
 
 task PrintInformation { 
     $timestamp = "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
@@ -16,10 +16,9 @@ task PrintInformation {
     Write-Host "VerbosePreference is set to: $VerbosePreference"
     Write-Host 'Build started'
     Write-Host $timestamp
-    #Write-Host $([Environment]::NewLine)
-    #Write-Host "On Build Agent: $onBuildAgent"
+    Write-Host $([Environment]::NewLine)
     Write-Host "GlobalConfig: $global:project_configuration"
-    #Write-Host $([Environment]::NewLine)
+    Write-Host $([Environment]::NewLine)
     Write-Host "build_working_dir: $build_working_dir"
     Write-Host "test_results_dir: $test_results_dir"    
     Write-Host "code_coverage_dir: $code_coverage_dir"    
@@ -27,8 +26,7 @@ task PrintInformation {
     Write-Host "env:CI: $env:CI"
     Write-Host "env:GITHUB_WORKFLOW: $env:GITHUB_WORKFLOW"
     Write-Host "env:GITHUB_RUN_ID: $env:GITHUB_RUN_ID"
-    Write-Host "env:GITHUB_RUN_NUMBER: $env:GITHUB_RUN_NUMBER"    
-    gci env:
+    Write-Host "env:GITHUB_RUN_NUMBER: $env:GITHUB_RUN_NUMBER" 
     Write-Host '##########################################'
 }
 
@@ -89,7 +87,7 @@ task PackNugetPackages {
 
     
     Write-Host "VerbosePreference is set to: $VerbosePreference"
-    
+
     $version = Get-AssemblyVersion $sdk_dll_path
     $packages_version = [Version]$version
     $global:semver = $packages_version.Major.ToString() + "." + $packages_version.Minor.ToString() + "." + $packages_version.Build.ToString() + "." + $packages_version.Revision.ToString()
@@ -151,7 +149,7 @@ function Get-AssemblyVersion {
     }
 
     Write-Host "bin - "
-    Get-ChildItem -Path "$solution_dir\IviSdk" -Recurse -Verbose
+    Get-ChildItem -Path "$solution_dir" -Recurse -Verbose
     Write-Host '##########################################'
     
     $bytes = [System.IO.File]::ReadAllBytes($DllPath)
