@@ -7,7 +7,10 @@ properties {
     }
     
     $dotnetExe = "dotnet"
-    $global:project_configuration = "release"
+    $global:project_configuration = "Debug"
+    if ($on_build_server) {
+        $global:project_configuration = "Release"
+    }
 
     $build_artifacts_dir = "$build_working_dir\BuildArtifacts"
     $test_results_dir = "$build_artifacts_dir\TestResults"
