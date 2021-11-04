@@ -2,14 +2,24 @@
 using System.ComponentModel;
 using System.ServiceModel;
 using System.Threading.Tasks;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using ProtoBuf;
 using ProtoBuf.Grpc;
+using ProtoBuf.Meta;
+using ProtoBuf.Serializers;
 
 namespace Mythical.Game.IviSdkCSharp
 {
     [ProtoBuf.ProtoContract]
     public partial class Metadata
-    {        
+    {
+
+        static Metadata()
+        {
+            var metatype = RuntimeTypeModel.Default?.Add<Struct>(false);
+            metatype!.SerializerType = typeof(MythicalStructSerializer);
+        }
         [ProtoBuf.ProtoMember(1, Name = @"name")]
         [DefaultValue("")]
         public string Name { get; set; } = "";
@@ -23,8 +33,21 @@ namespace Mythical.Game.IviSdkCSharp
         public string Image { get; set; } = "";
 
         [ProtoBuf.ProtoMember(4, Name = @"properties")]
-        public Struct? Properties { get; set; }
+        [DefaultValue("")]
+        internal string PropertiesJson { get; set; } = "";
 
+        public string Properties { get; set; } = "";
+    }
+
+    internal class MythicalStructSerializer : ISerializer<Struct>
+    {
+        SerializerFeatures ISerializer<Struct>.Features => SerializerFeatures.CategoryScalar | SerializerFeatures.WireTypeString;
+
+        Struct ISerializer<Struct>.Read(ref ProtoReader.State state, Struct value)
+            => Struct.Parser.ParseJson(state.ReadString()!); 
+
+        void ISerializer<Struct>.Write(ref ProtoWriter.State state, Struct value)
+            => state.WriteString(JsonFormatter.Default.Format(value)); 
     }
 
     [ProtoBuf.ProtoContract]
@@ -240,7 +263,7 @@ namespace Mythical.Game.IviSdkCSharp
         UpdatedMetadata = 7,
     }
 
-    [ServiceContract(Name = @"Mythical.Game.IviSdkCSharp.ItemTypeService")]
+    [ServiceContract(Name = @"ivi.rpc.api.itemtype.ItemTypeService")]
     public partial interface IItemTypeService
     {
         ValueTask<CreateItemResponse> CreateItemTypeAsync(CreateItemTypeRequest value, CallContext context = default);
@@ -306,7 +329,7 @@ namespace Mythical.Game.IviSdkCSharp
 
     }
 
-    [ServiceContract(Name = @"Mythical.Game.IviSdkCSharp.ItemTypeStatusStream")]
+    [ServiceContract(Name = @"ivi.rpc.streams.itemtype.ItemTypeStatusStream")]
     public partial interface IItemTypeStatusStream
     {
         IAsyncEnumerable<ItemTypeStatusUpdate> ItemTypeStatusStreamAsync(Subscribe value, CallContext context = default);

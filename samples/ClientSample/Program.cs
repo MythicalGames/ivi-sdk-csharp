@@ -1,12 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Games.Mythical.Ivi.Sdk.Client;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Ivi.Proto.Common.Sort;
 using Microsoft.Extensions.Logging;
 using Mythical.Game.IviSdkCSharp;
 using Mythical.Game.IviSdkCSharp.Mapper;
+using ProtoBuf.Meta;
+
 // using Mythical.Game.IviSdkCSharp.Model;
 
 namespace ClientSample
@@ -45,32 +47,38 @@ namespace ClientSample
             {
                 UpdateSubscription = new LoggingItemTypeUpdateSubscription(logger)
             };
-            var metadataProperties = new Dictionary<string, object>
+            var metadataProperties = new Struct
             {
-                {"base_price_usd", 1000},
-                {"season_display_name", "winter item types"},
-                {"collection", "WINTER"},
-                {"item_class", "the class"}
+                Fields =
+                {
+                    {"base_price_usd", Value.ForNumber(1000)},
+                    {"season_display_name", Value.ForString("winter item types")},
+                    {"collection", Value.ForString("WINTER")},
+                    {"item_class", Value.ForString("the class")}
+                }
             };
 
             var iviMetadata = new Metadata{
                 Name = "name",
                 Description = "desc",
                 Image = "sdsfs", 
-                Properties = metadataProperties};
+                Properties = JsonFormatter.Default.Format(metadataProperties)
+            };
 
             var iviItemType = new CreateItemTypeRequest
             {
-                GameItemTypeId = "itemType.GameItemTypeId2",
-                TokenName = "itemType.TokenName2",
-                Category = "itemType.Category",
+                GameItemTypeId = "itemType.GameItemTypeId3",
+                TokenName = "itemType.TokenName3",
+                Category = "itemType.Category3",
                 MaxSupply = 1000,
-                IssueTimeSpan = 0,
+                IssueTimeSpan = 1,
                 Burnable = true,
                 Transferable = true,
                 Sellable = true,
                 Metadata = iviMetadata
             };
+
+            var schema = RuntimeTypeModel.Default.GetSchema(typeof(CreateItemTypeRequest));
 
             await itemTypeClient.CreateItemTypeAsync(iviItemType);
 
@@ -79,4 +87,6 @@ namespace ClientSample
             logger.LogInformation("GetItemTypesAsync: {itemTypes}", itemTypes);
         }
     }
+
+
 }
