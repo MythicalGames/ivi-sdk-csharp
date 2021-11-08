@@ -1,7 +1,7 @@
-﻿using IviSdkCsharp.Config;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Mythical.Game.IviSdkCSharp.Config;
 using Serilog;
 
 namespace ClientSample
