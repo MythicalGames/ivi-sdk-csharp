@@ -48,7 +48,8 @@ namespace IviSdkCsharp.Tests.ItemType.Services
             return Task.FromResult(new CreateItemAsyncResponse
             {
                 ItemTypeState = ItemTypeState.PendingCreate,
-                GameItemTypeId = request.GameItemTypeId
+                GameItemTypeId = request.GameItemTypeId,
+                TrackingId = $"Traking_{request.GameItemTypeId}"
             });
         }
     }

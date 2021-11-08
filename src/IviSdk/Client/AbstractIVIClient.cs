@@ -6,6 +6,7 @@ using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
 using Mythical.Game.IviSdkCSharp.Config;
 using Mythical.Game.IviSdkCSharp.Exception;
+using Mythical.Game.IviSdkCSharp.Mapper;
 
 [assembly:InternalsVisibleTo("IviSdkCsharp.Tests")]
 
@@ -21,6 +22,9 @@ namespace Games.Mythical.Ivi.Sdk.Client
         // gRPC settings
         protected int KeepAlive { get; }
         protected GrpcChannel Channel;
+
+        static AbstractIVIClient() => MappersConfig.RegisterMappings();
+
         protected AbstractIVIClient(Uri? address = default, GrpcChannelOptions? options = default)
         {
             EnsureStringValue(IviConfiguration.EnvironmentId, "Environment Id not set!", IVIErrorCode.ENVIRONMENT_ID_NOT_SET);
