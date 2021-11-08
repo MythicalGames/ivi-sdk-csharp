@@ -40,7 +40,7 @@ namespace IviSdkCsharp.Tests
         }
         
         [Fact]
-        public async Task GetItemTypeAsync_gRPCServiceThrows_ThrowsIVIException()
+        public void GetItemTypeAsync_gRPCServiceThrows_ThrowsIVIException()
         {
             var itemTypeClient = new IviItemTypeClient(NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
             
@@ -73,13 +73,33 @@ namespace IviSdkCsharp.Tests
             {
                 UpdateSubscription = executor
             };
-            var expectedCall = new MockItemTypeExecutor.UpdateItemTypeCall(GameItemTypeIdNew, $"Traking_{GameItemTypeIdNew}",  ItemTypeState.PendingCreate);
+            var expectedCall = new MockItemTypeExecutor.UpdateItemTypeCall(GameItemTypeIdNew,
+                $"Traking_{GameItemTypeIdNew}",
+                ItemTypeState.PendingCreate);
 
             await itemTypeClient.CreateItemTypeAsync(new IviItemType
             {
                 GameItemTypeId = GameItemTypeIdNew,
                 TypeState = ItemTypeState.Failed
             });
+
+            executor.LastCall.ShouldBe(expectedCall);
+        }
+
+        [Fact]
+        public async Task FreezeItemTypeAsync_ValidInput_FreezesItemType()
+        {
+            var executor = new MockItemTypeExecutor();
+            var itemTypeClient = new IviItemTypeClient(null, _fixture.Client)
+            {
+                UpdateSubscription = executor
+            };
+            var expectedCall = new MockItemTypeExecutor.UpdateItemTypeCall(
+                GameItemTypeIdFreeze,
+                $"Tracking_{GameItemTypeIdFreeze}",
+                ItemTypeState.Frozen);
+
+            await itemTypeClient.FreezeItemTypeAsync(GameItemTypeIdFreeze);
 
             executor.LastCall.ShouldBe(expectedCall);
         }

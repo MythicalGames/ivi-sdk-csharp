@@ -61,13 +61,17 @@ namespace Games.Mythical.Ivi.Sdk.Client
                         _logger.LogDebug("ItemType update subscription for itemType id {itemTypeId}", response.GameItemTypeId);
                         try
                         {
-                            _itemTypeExecutor?.UpdateItemType(response.GameItemTypeId, response.CurrentSupply, response.IssuedSupply, response.BaseUri, response.IssueTimeSpan, response.TrackingId, response.ItemTypeState);
+                            if (_itemTypeExecutor != null)
+                            {
+                                await _itemTypeExecutor!.UpdateItemTypeAsync(response.GameItemTypeId, response.CurrentSupply, response.IssuedSupply, response.BaseUri, response.IssueTimeSpan, response.TrackingId, response.ItemTypeState);
+                            }
+                            
                             await ConfirmItemTypeUpdateAsync(response.GameItemTypeId, response.TrackingId, response.ItemTypeState);
                             resetRetries();
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, $"Error calling {nameof(_itemTypeExecutor.UpdateItemType)}");
+                            _logger.LogError(ex, $"Error calling {nameof(_itemTypeExecutor.UpdateItemTypeAsync)}");
                         }
                     }
                     _logger.LogInformation("ItemType update stream closed");
@@ -155,16 +159,25 @@ namespace Games.Mythical.Ivi.Sdk.Client
                 _logger?.LogDebug("ItemTypeClient.CreateItemTypeAsync called with params: {request}", request);
 
                 var result = await Client.CreateItemTypeAsync(request, cancellationToken: cancellationToken);
-                _itemTypeExecutor?.SavedItemTypeStatus(itemType.GameItemTypeId, result.TrackingId, result.ItemTypeState);
+                if (_itemTypeExecutor != null)
+                {
+                    await _itemTypeExecutor!.UpdateItemTypeStatusAsync(itemType.GameItemTypeId, result.TrackingId, result.ItemTypeState);
+                }
+                
             }
             catch (RpcException ex)
             {
                 _logger?.LogError(ex, "gRPC error from IVI server" );
                 throw IVIException.FromGrpcException(ex);
             }
+            catch (Exception ex)
+            {
+                _logger?.LogError($"Exception calling {nameof(IVIItemTypeExecutor.UpdateItemTypeStatusAsync)} on {nameof(CreateItemTypeAsync)}, item type will be in an invalid state!", ex);
+                throw new IVIException(IVIErrorCode.LOCAL_EXCEPTION);
+            }
         }
 
-        public void FreezeItemTypeAsync(string gameItemTypeId, CancellationToken cancellationToken = default)
+        public async Task FreezeItemTypeAsync(string gameItemTypeId, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -173,14 +186,25 @@ namespace Games.Mythical.Ivi.Sdk.Client
                     EnvironmentId = EnvironmentId,
                     GameItemTypeId = gameItemTypeId
                 };
-                _logger?.LogDebug($"ItemTypeClient.FreezeItemType called with params: {freezeItemTypeRequest}", freezeItemTypeRequest);
-                Client.FreezeItemTypeAsync(freezeItemTypeRequest, cancellationToken: cancellationToken);
-
+                _logger?.LogDebug($"ItemTypeClient.FreezeItemType called with params: {freezeItemTypeRequest}",
+                    freezeItemTypeRequest);
+                var result =
+                    await Client.FreezeItemTypeAsync(freezeItemTypeRequest, cancellationToken: cancellationToken);
+                if (_itemTypeExecutor != null)
+                {
+                    await _itemTypeExecutor!.UpdateItemTypeStatusAsync(gameItemTypeId, result.TrackingId,
+                        result.ItemTypeState);
+                }
             }
             catch (RpcException ex)
             {
                 _logger?.LogError(ex, "gRPC error from IVI server");
                 throw IVIException.FromGrpcException(ex);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError($"Exception calling {nameof(IVIItemTypeExecutor.UpdateItemTypeStatusAsync)} on {nameof(FreezeItemTypeAsync)}, item type will be in an invalid state!", ex);
+                throw new IVIException(IVIErrorCode.LOCAL_EXCEPTION);
             }
         }
 
@@ -204,6 +228,5 @@ namespace Games.Mythical.Ivi.Sdk.Client
                 throw IVIException.FromGrpcException(ex);
             }
         }
-
     }
 }

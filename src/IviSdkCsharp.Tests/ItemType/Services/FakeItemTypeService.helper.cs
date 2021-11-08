@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json;
-using Ivi.Proto.Api.Itemtype;
-using Ivi.Proto.Common.Sort;
-using Mythical.Game.IviSdkCSharp.Model;
+﻿using Ivi.Proto.Api.Itemtype;
 
 namespace IviSdkCsharp.Tests.ItemType.Services
 {
@@ -13,6 +8,7 @@ namespace IviSdkCsharp.Tests.ItemType.Services
         public const string GameItemTypeIdExisting = "Quarterback";
         public const string GameItemTypeIdNotFound = "Not found";
         public const string GameItemTypeIdThrow = "Should throw";
+        public const string GameItemTypeIdFreeze = "Freeze this one";
 
         private static ItemTypes _defaultItemTypes;
 

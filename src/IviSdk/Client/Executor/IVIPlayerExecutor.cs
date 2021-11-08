@@ -1,9 +1,10 @@
-﻿using Ivi.Proto.Common.Player;
+﻿using System.Threading.Tasks;
+using Ivi.Proto.Common.Player;
 
 namespace IviSdkCsharp.Client.Executor
 {
     public interface IVIPlayerExecutor
     {
-        void UpdatePlayer(string playerId, string trackingId, PlayerState playerState);
+        Task UpdatePlayerAsync(string playerId, string trackingId, PlayerState playerState);
     }
 }

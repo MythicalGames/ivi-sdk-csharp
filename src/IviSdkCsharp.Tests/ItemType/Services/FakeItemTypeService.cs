@@ -49,12 +49,32 @@ namespace IviSdkCsharp.Tests.ItemType.Services
         {
             if (request.EnvironmentId != IviConfiguration.EnvironmentId)
                 throw new Exception("Environment id was not set");
-            return Task.FromResult(new CreateItemAsyncResponse
+
+            return request.GameItemTypeId switch
             {
-                ItemTypeState = ItemTypeState.PendingCreate,
-                GameItemTypeId = request.GameItemTypeId,
-                TrackingId = $"Traking_{request.GameItemTypeId}"
-            });
+                GameItemTypeIdNew => Task.FromResult(new CreateItemAsyncResponse
+                {
+                    ItemTypeState = ItemTypeState.PendingCreate,
+                    GameItemTypeId = request.GameItemTypeId,
+                    TrackingId = $"Traking_{request.GameItemTypeId}"
+                }),
+                _ => throw new Exception("Unexpected item type")
+            };
+        }
+
+        public override Task<FreezeItemTypeAsyncResponse> FreezeItemType(FreezeItemTypeRequest request, ServerCallContext context)
+        {
+            if (request.EnvironmentId != IviConfiguration.EnvironmentId)
+                throw new Exception("Environment id was not set");
+            return request.GameItemTypeId switch
+            {
+                GameItemTypeIdFreeze => Task.FromResult(new FreezeItemTypeAsyncResponse
+                {
+                    ItemTypeState = ItemTypeState.Frozen,
+                    TrackingId = $"Tracking_{request.GameItemTypeId}",
+                }),
+                _ => throw new Exception("Unexpected item type")
+            };
         }
     }
 }

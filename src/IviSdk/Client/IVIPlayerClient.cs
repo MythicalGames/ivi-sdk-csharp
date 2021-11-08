@@ -53,14 +53,17 @@ namespace Games.Mythical.Ivi.Sdk.Client
                         _logger.LogDebug("Player update subscription for player id {playerId}", response.PlayerId);
                         try
                         {
-                            _playerExecutor?.UpdatePlayer(response.PlayerId, response.TrackingId, response.PlayerState);
+                            if (_playerExecutor != null)
+                            {
+                                await _playerExecutor!.UpdatePlayerAsync(response.PlayerId, response.TrackingId, response.PlayerState);
+                            }
                             await ConfirmPlayerUpdateAsync(response.PlayerId, response.TrackingId,
                                 response.PlayerState);
                             resetRetries();
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, $"Error calling {nameof(_playerExecutor.UpdatePlayer)}");
+                            _logger.LogError(ex, $"Error calling {nameof(_playerExecutor.UpdatePlayerAsync)}");
                         }
                     }
                     _logger.LogInformation("Player update stream closed");
@@ -109,7 +112,10 @@ namespace Games.Mythical.Ivi.Sdk.Client
                 }
                 
                 var result = await Client.LinkPlayerAsync(request);
-                _playerExecutor?.UpdatePlayer(playerId, result.TrackingId, result.PlayerState);
+                if (_playerExecutor != null)
+                {
+                    await _playerExecutor!.UpdatePlayerAsync(playerId, result.TrackingId, result.PlayerState);
+                }
             }
             catch (RpcException e)
             {
@@ -117,7 +123,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
             catch (Exception e)
             {
-                _logger?.LogError("Exception calling updatePlayerState on linkPlayer, player will be in an invalid state!", e);
+                _logger?.LogError($"Exception calling {nameof(IVIPlayerExecutor.UpdatePlayerAsync)} on {nameof(LinkPlayerAsync)}, player will be in an invalid state!", e);
 
                 throw new IVIException(IVIErrorCode.LOCAL_EXCEPTION);
             }
