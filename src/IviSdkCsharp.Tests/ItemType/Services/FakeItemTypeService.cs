@@ -1,10 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Grpc.Core;
 using Ivi.Proto.Api.Itemtype;
 using Ivi.Proto.Api.Player;
 using Ivi.Proto.Common.Itemtype;
 using Ivi.Proto.Common.Player;
 using Ivi.Rpc.Api.Itemtype;
+using Mythical.Game.IviSdkCSharp.Config;
 
 namespace IviSdkCsharp.Tests.ItemType.Services
 {
@@ -45,6 +47,8 @@ namespace IviSdkCsharp.Tests.ItemType.Services
 
         public override Task<CreateItemAsyncResponse> CreateItemType(CreateItemTypeRequest request, ServerCallContext context)
         {
+            if (request.EnvironmentId != IviConfiguration.EnvironmentId)
+                throw new Exception("Environment id was not set");
             return Task.FromResult(new CreateItemAsyncResponse
             {
                 ItemTypeState = ItemTypeState.PendingCreate,

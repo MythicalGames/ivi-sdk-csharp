@@ -151,6 +151,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
             try
             {
                 var request = itemType.Adapt<CreateItemTypeRequest>();
+                request.EnvironmentId = EnvironmentId;
                 _logger?.LogDebug("ItemTypeClient.CreateItemTypeAsync called with params: {request}", request);
 
                 var result = await Client.CreateItemTypeAsync(request, cancellationToken: cancellationToken);
