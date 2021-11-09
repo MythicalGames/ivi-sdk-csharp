@@ -16,6 +16,7 @@ namespace IviSdkCsharp.Tests
     public class ItemTypeClientTests
     {
         private readonly  GrpcTestServerFixture _fixture;
+
         public ItemTypeClientTests(GrpcTestServerFixture fixture) => _fixture = fixture;
 
         [Fact]
@@ -102,6 +103,13 @@ namespace IviSdkCsharp.Tests
             await itemTypeClient.FreezeItemTypeAsync(GameItemTypeIdFreeze);
 
             executor.LastCall.ShouldBe(expectedCall);
+        }
+
+        [Fact]
+        public async Task UpdateItemTypeMetadataAsync_ValidInput_FreezesItemType()
+        {
+            var itemTypeClient = new IviItemTypeClient(null, _fixture.Client);
+            await itemTypeClient.UpdateItemTypeMetadataAsync(GameItemTypeIdExisting, null);
         }
     }
 }

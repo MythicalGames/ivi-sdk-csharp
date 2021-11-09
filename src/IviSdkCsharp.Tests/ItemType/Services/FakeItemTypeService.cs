@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Ivi.Proto.Api.Itemtype;
 using Ivi.Proto.Api.Player;
@@ -7,6 +8,7 @@ using Ivi.Proto.Common.Itemtype;
 using Ivi.Proto.Common.Player;
 using Ivi.Rpc.Api.Itemtype;
 using Mythical.Game.IviSdkCSharp.Config;
+using Shouldly;
 
 namespace IviSdkCsharp.Tests.ItemType.Services
 {
@@ -47,8 +49,7 @@ namespace IviSdkCsharp.Tests.ItemType.Services
 
         public override Task<CreateItemAsyncResponse> CreateItemType(CreateItemTypeRequest request, ServerCallContext context)
         {
-            if (request.EnvironmentId != IviConfiguration.EnvironmentId)
-                throw new Exception("Environment id was not set");
+            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
 
             return request.GameItemTypeId switch
             {
@@ -64,8 +65,7 @@ namespace IviSdkCsharp.Tests.ItemType.Services
 
         public override Task<FreezeItemTypeAsyncResponse> FreezeItemType(FreezeItemTypeRequest request, ServerCallContext context)
         {
-            if (request.EnvironmentId != IviConfiguration.EnvironmentId)
-                throw new Exception("Environment id was not set");
+            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
             return request.GameItemTypeId switch
             {
                 GameItemTypeIdFreeze => Task.FromResult(new FreezeItemTypeAsyncResponse
@@ -75,6 +75,13 @@ namespace IviSdkCsharp.Tests.ItemType.Services
                 }),
                 _ => throw new Exception("Unexpected item type")
             };
+        }
+
+        public override Task<Empty> UpdateItemTypeMetadata(UpdateItemTypeMetadataPayload request, ServerCallContext context)
+        {
+            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.GameItemTypeId.ShouldBe(GameItemTypeIdExisting);
+            return Task.FromResult(new Empty());
         }
     }
 }
