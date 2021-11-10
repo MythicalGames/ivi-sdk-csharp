@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Games.Mythical.Ivi.Sdk.Client;
-using Ivi.Proto.Common;
 using Ivi.Proto.Common.Sort;
-using IviSdkCsharp.Client.Executor;
 using Microsoft.Extensions.Logging;
 using Mythical.Game.IviSdkCSharp.Mapper;
 using Mythical.Game.IviSdkCSharp.Model;
