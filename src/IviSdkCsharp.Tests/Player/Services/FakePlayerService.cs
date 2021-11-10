@@ -3,6 +3,8 @@ using Grpc.Core;
 using Ivi.Proto.Api.Player;
 using Ivi.Proto.Common.Player;
 using Ivi.Rpc.Api.Player;
+using Mythical.Game.IviSdkCSharp.Config;
+using Shouldly;
 
 namespace IviSdkCsharp.Tests.Player.Services
 {
@@ -28,6 +30,7 @@ namespace IviSdkCsharp.Tests.Player.Services
 
         public override Task<LinkPlayerAsyncResponse> LinkPlayer(LinkPlayerRequest request, ServerCallContext context)
         {
+            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
             if (request.PlayerId == PlayerIdThrow) throw new System.Exception();
             return Task.FromResult(new LinkPlayerAsyncResponse
             {

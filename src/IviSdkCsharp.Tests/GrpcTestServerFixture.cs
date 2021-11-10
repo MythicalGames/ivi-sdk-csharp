@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net.Http;
-using Grpc.Net.Client;
 using IviSdkCsharp.Tests.Host;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;

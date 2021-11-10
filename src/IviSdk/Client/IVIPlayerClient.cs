@@ -13,22 +13,23 @@ using Ivi.Rpc.Streams;
 using Ivi.Rpc.Streams.Player;
 using IviSdkCsharp.Client.Executor;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mythical.Game.IviSdkCSharp.Exception;
 
 namespace Games.Mythical.Ivi.Sdk.Client
 {
     public class IviPlayerClient : AbstractIVIClient
     {
-        private readonly ILogger<IviPlayerClient>? _logger;
+        private readonly ILogger<IviPlayerClient> _logger;
         private readonly IVIPlayerExecutor? _playerExecutor;
         private PlayerService.PlayerServiceClient? _client;
         private PlayerStream.PlayerStreamClient? _streamClient;
 
-        public IviPlayerClient(ILogger<IviPlayerClient>? logger) => _logger = logger;
+        public IviPlayerClient(ILogger<IviPlayerClient>? logger) => _logger = logger ?? new NullLogger<IviPlayerClient>();
 
         internal IviPlayerClient(ILogger<IviPlayerClient>? logger, HttpClient httpClient)
             : base(httpClient.BaseAddress!, new GrpcChannelOptions{ HttpClient = httpClient }) =>
-            _logger = logger;
+            _logger = logger ?? new NullLogger<IviPlayerClient>();
 
         public IVIPlayerExecutor UpdateSubscription
         {
@@ -53,14 +54,17 @@ namespace Games.Mythical.Ivi.Sdk.Client
                         _logger.LogDebug("Player update subscription for player id {playerId}", response.PlayerId);
                         try
                         {
-                            _playerExecutor?.UpdatePlayer(response.PlayerId, response.TrackingId, response.PlayerState);
+                            if (_playerExecutor != null)
+                            {
+                                await _playerExecutor!.UpdatePlayerAsync(response.PlayerId, response.TrackingId, response.PlayerState);
+                            }
                             await ConfirmPlayerUpdateAsync(response.PlayerId, response.TrackingId,
                                 response.PlayerState);
                             resetRetries();
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, $"Error calling {nameof(_playerExecutor.UpdatePlayer)}");
+                            _logger.LogError(ex, $"Error calling {nameof(_playerExecutor.UpdatePlayerAsync)}");
                         }
                     }
                     _logger.LogInformation("Player update stream closed");
@@ -91,7 +95,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
 
         public async Task LinkPlayerAsync(string playerId, string email, string displayName, string requestIp)
         {
-            _logger?.LogDebug("PlayerClient.linkPlayer called from player: {playerId}:{email}:{displayName}", 
+            _logger.LogDebug("PlayerClient.linkPlayer called from player: {playerId}:{email}:{displayName}", 
                 playerId, email, displayName);
             try
             {
@@ -109,7 +113,10 @@ namespace Games.Mythical.Ivi.Sdk.Client
                 }
                 
                 var result = await Client.LinkPlayerAsync(request);
-                _playerExecutor?.UpdatePlayer(playerId, result.TrackingId, result.PlayerState);
+                if (_playerExecutor != null)
+                {
+                    await _playerExecutor!.UpdatePlayerAsync(playerId, result.TrackingId, result.PlayerState);
+                }
             }
             catch (RpcException e)
             {
@@ -117,7 +124,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
             catch (Exception e)
             {
-                _logger?.LogError("Exception calling updatePlayerState on linkPlayer, player will be in an invalid state!", e);
+                _logger.LogError($"Exception calling {nameof(IVIPlayerExecutor.UpdatePlayerAsync)} on {nameof(LinkPlayerAsync)}, player will be in an invalid state!", e);
 
                 throw new IVIException(IVIErrorCode.LOCAL_EXCEPTION);
             }
@@ -125,7 +132,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
         
         public async Task<IVIPlayer?> GetPlayerAsync(string playerId, CancellationToken cancellationToken = default)
         {
-            _logger?.LogDebug("PlayerClient.getPlayer called from player: {playerId}", playerId);
+            _logger.LogDebug("PlayerClient.getPlayer called from player: {playerId}", playerId);
 
             try
             {
@@ -148,7 +155,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
 
         public async Task<IList<IVIPlayer>?> GetPlayersAsync(DateTimeOffset createdTimestamp, int pageSize, SortOrder sortOrder, CancellationToken cancellationToken = default)
         {
-            _logger?.LogDebug("PlayerClient.getPlayers called with params: createdTimestamp {}, pageSize {}, sortOrder {}", createdTimestamp, pageSize, sortOrder);
+            _logger.LogDebug("PlayerClient.getPlayers called with params: createdTimestamp {}, pageSize {}, sortOrder {}", createdTimestamp, pageSize, sortOrder);
             try
             {
                 var request = new GetPlayersRequest
@@ -163,7 +170,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
             catch (RpcException e)
             {
-                _logger?.LogError("gRPC error from IVI server", e);
+                _logger.LogError("gRPC error from IVI server", e);
                 throw IVIException.FromGrpcException(e);
             }
         }

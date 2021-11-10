@@ -1,10 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Ivi.Proto.Api.Itemtype;
 using Ivi.Proto.Api.Player;
 using Ivi.Proto.Common.Itemtype;
 using Ivi.Proto.Common.Player;
 using Ivi.Rpc.Api.Itemtype;
+using Mythical.Game.IviSdkCSharp.Config;
+using Shouldly;
 
 namespace IviSdkCsharp.Tests.ItemType.Services
 {
@@ -45,11 +49,39 @@ namespace IviSdkCsharp.Tests.ItemType.Services
 
         public override Task<CreateItemAsyncResponse> CreateItemType(CreateItemTypeRequest request, ServerCallContext context)
         {
-            return Task.FromResult(new CreateItemAsyncResponse
+            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+
+            return request.GameItemTypeId switch
             {
-                ItemTypeState = ItemTypeState.PendingCreate,
-                GameItemTypeId = request.GameItemTypeId
-            });
+                GameItemTypeIdNew => Task.FromResult(new CreateItemAsyncResponse
+                {
+                    ItemTypeState = ItemTypeState.PendingCreate,
+                    GameItemTypeId = request.GameItemTypeId,
+                    TrackingId = $"Traking_{request.GameItemTypeId}"
+                }),
+                _ => throw new Exception("Unexpected item type")
+            };
+        }
+
+        public override Task<FreezeItemTypeAsyncResponse> FreezeItemType(FreezeItemTypeRequest request, ServerCallContext context)
+        {
+            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            return request.GameItemTypeId switch
+            {
+                GameItemTypeIdFreeze => Task.FromResult(new FreezeItemTypeAsyncResponse
+                {
+                    ItemTypeState = ItemTypeState.Frozen,
+                    TrackingId = $"Tracking_{request.GameItemTypeId}",
+                }),
+                _ => throw new Exception("Unexpected item type")
+            };
+        }
+
+        public override Task<Empty> UpdateItemTypeMetadata(UpdateItemTypeMetadataPayload request, ServerCallContext context)
+        {
+            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.GameItemTypeId.ShouldBe(GameItemTypeIdExisting);
+            return Task.FromResult(new Empty());
         }
     }
 }
