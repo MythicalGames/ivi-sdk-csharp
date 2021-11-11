@@ -19,8 +19,21 @@ namespace ClientSample
 
             await PlayerClient_Usage(setup);
             await ItemTypeClient_Usage(setup);
-
+            await ItemClient_Usage(setup);
             Console.ReadLine();
+        }
+
+        private static async Task ItemClient_Usage(Setup setup)
+        {
+            var logger = setup.CreateLogger<IviItemClient>();
+
+            var itemClient = new IviItemClient(logger)
+            {
+                UpdateSubscription = new LoggingItemUpdateSubscription(logger)
+            };
+
+            var items = await itemClient.GetItems(DateTimeOffset.MinValue, 4, SortOrder.Asc);
+            logger.LogInformation("GetItemsAsync: {@Items}", items);
         }
 
         private static async Task PlayerClient_Usage(Setup setup)

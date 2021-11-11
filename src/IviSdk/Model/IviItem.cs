@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Ivi.Proto.Common.Item;
 
 namespace Mythical.Game.IviSdkCSharp.Model
@@ -12,7 +13,6 @@ namespace Mythical.Game.IviSdkCSharp.Model
         public string PlayerId { get; }
         public string OwnerSidechainAccount { get; }
         public int SerialNumber { get; }
-        public string CurrencyBase { get; }
         public string MetadataUri { get; }
         public string TrackingId { get; }
         public IviMetadata Metadata { get; }
@@ -20,7 +20,19 @@ namespace Mythical.Game.IviSdkCSharp.Model
         public DateTime CreatedTimestamp { get; }
         public DateTime UpdatedTimestamp { get; }
 
-        public IviItem(string gameInventoryId, string gameItemTypeId, long dGoodsId, string itemName, string playerId, string ownerSidechainAccount, int serialNumber, string currencyBase, string metadataUri, string trackingId, IviMetadata metadata, ItemState itemState, DateTime createdTimestamp, DateTime updatedTimestamp)
+        public IviItem()
+        {
+            GameInventoryId = "";
+            GameItemTypeId = "";
+            ItemName = "";
+            PlayerId = "";
+            OwnerSidechainAccount = "";
+            MetadataUri = "";
+            TrackingId = "";
+            Metadata = new IviMetadata("", "", "", new Dictionary<string, object>());
+        }
+
+        public IviItem(string gameInventoryId, string gameItemTypeId, long dGoodsId, string itemName, string playerId, string ownerSidechainAccount, int serialNumber, string metadataUri, string trackingId, IviMetadata metadata, ItemState itemState, DateTime createdTimestamp, DateTime updatedTimestamp)
         {
             this.GameInventoryId = gameInventoryId;
             this.GameItemTypeId = gameItemTypeId;
@@ -29,7 +41,6 @@ namespace Mythical.Game.IviSdkCSharp.Model
             this.PlayerId = playerId;
             this.OwnerSidechainAccount = ownerSidechainAccount;
             this.SerialNumber = serialNumber;
-            this.CurrencyBase = currencyBase;
             this.MetadataUri = metadataUri;
             this.TrackingId = trackingId;
             this.Metadata = metadata;

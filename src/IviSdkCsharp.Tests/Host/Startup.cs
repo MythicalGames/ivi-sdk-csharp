@@ -1,10 +1,12 @@
 using System.Security.Authentication;
+using IviSdkCsharp.Tests.Item.Services;
 using IviSdkCsharp.Tests.ItemType.Services;
 using IviSdkCsharp.Tests.Player.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Mythical.Game.IviSdkCSharp.Mapper;
 
 namespace IviSdkCsharp.Tests.Host
 {
@@ -18,6 +20,7 @@ namespace IviSdkCsharp.Tests.Host
             {
                 app.UseDeveloperExceptionPage();
             }
+            MappersConfig.RegisterMappings();
             app.UseRouting();
             app.Use(async (context, next) =>
             {
@@ -35,6 +38,7 @@ namespace IviSdkCsharp.Tests.Host
             {
                 endpoints.MapGrpcService<FakePlayerService>();
                 endpoints.MapGrpcService<FakeItemTypeService>();
+                endpoints.MapGrpcService<FakeItemService>();
             });
         }
     }
