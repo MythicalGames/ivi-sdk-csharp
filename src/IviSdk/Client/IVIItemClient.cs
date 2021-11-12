@@ -120,7 +120,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
                 }
                 
                 
-                if (!string.IsNullOrEmpty(requestIp))
+                if (!string.IsNullOrWhiteSpace(requestIp))
                 {
                     request.RequestIp = requestIp;
                 }
@@ -152,6 +152,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
                 var request = new TransferItemRequest()
                 {
                     EnvironmentId = EnvironmentId,
+                    GameItemInventoryId = gameInventoryId,
                     DestinationPlayerId = destPlayerId,
                     SourcePlayerId = sourcePlayerId,
                     StoreId = storeId
@@ -267,15 +268,14 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
         }
 
-        public async Task<IviMetadata?> UpdateItemMetadataAsync(String gameInventoryId, IviMetadata metadata, CancellationToken cancellationToken = default)
+        public async Task UpdateItemMetadataAsync(String gameInventoryId, IviMetadata metadata, CancellationToken cancellationToken = default)
         {
             _logger?.LogDebug("ItemClient.updateItemMetadata called with params: gameInventoryId {}, metadata {}, sortOrder {}", gameInventoryId, metadata);
             try
             {
                 List<UpdateItemMetadata>? updateList = new() {new UpdateItemMetadata() { GameInventoryId = gameInventoryId, Metadata = metadata.Adapt<Metadata>()}};
 
-                var result = await _updateItemMetadataAsync(updateList, cancellationToken);
-                return result.Adapt<IviMetadata?>();
+                await _updateItemMetadataAsync(updateList, cancellationToken);
             }
             catch (RpcException e)
             {
@@ -284,19 +284,19 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
         }
 
-        public async Task<IviMetadata?> UpdateItemMetadataAsync(List<UpdateItemMetadata> updates,
+        public async Task UpdateItemMetadataAsync(List<IviMetadataUpdate> updates,
             CancellationToken cancellationToken = default)
         {
             _logger?.LogDebug("ItemClient.updateItemMetadata called with param: updates {}", updates);
             try
             {
-                List<UpdateItemMetadata>? updateList = null;
-                foreach (var update in updates)   
+                List<UpdateItemMetadata> updateList = new();
+                foreach (var iviMetadataUpdate in updates)
                 {
-                    updateList?.Add(new UpdateItemMetadata() { GameInventoryId = update.GameInventoryId, Metadata = update.Metadata.Adapt<Metadata>()});
-                }
-                var result = await _updateItemMetadataAsync(updateList, cancellationToken);
-                return result.Adapt<IviMetadata?>();
+                    updateList.Add(new UpdateItemMetadata() { GameInventoryId = iviMetadataUpdate.GameInventoryId, Metadata = iviMetadataUpdate.Metadata.Adapt<Metadata>()});
+                } 
+                
+                await _updateItemMetadataAsync(updateList, cancellationToken);
             }
             catch (RpcException e)
             {

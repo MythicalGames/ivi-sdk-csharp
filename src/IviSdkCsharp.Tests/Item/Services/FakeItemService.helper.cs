@@ -31,9 +31,6 @@ namespace IviSdkCsharp.Tests.Item.Services
         public const string GameInventoryIdNotFound = "Not found";
         public const string GameInventoryIdThrow = "Should throw";
 
-        public static readonly UpdateItemMetadataResponse IssuedMetaData = new IviMetadata("thing", "imgUrl", "randomeNameUpdated", new Dictionary<string, object>()).Adapt<UpdateItemMetadataResponse>();
-
-        public record GetExpectedUpdateItemMetadataResponse();
 
         public record GetItemsExpectedRequest(DateTimeOffset createdTimestamp, int pageSize, SortOrder sortOrder);
      
