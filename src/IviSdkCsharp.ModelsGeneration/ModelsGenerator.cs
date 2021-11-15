@@ -12,14 +12,14 @@ namespace IviSdkCsharp.ModelsGeneration
             var finder = (GrpcTypesFinder?) context.SyntaxReceiver;
 
 
-            if (finder is {TargetTypes: {Count: > 0} aviTypes})
+            if (finder is {TargetTypes: {Count: > 0} iviTypes})
             {
                 var model = context.Compilation.GetSemanticModel(finder.Root!.SyntaxTree);
-                var types = aviTypes.Select(x => (INamedTypeSymbol)model.GetTypeInfo(x.Type)!.Type!).ToArray();
+                var types = iviTypes.Select(x => (INamedTypeSymbol)model.GetTypeInfo(x.Type)!.Type!).ToArray();
                 var ordered = OrderTypes(context, types);
                 foreach (var targetType in ordered)
                 {
-                    GenerateModel(context, targetType);
+                    GenerateModel(context, model, targetType);
                 }
             }
             else
@@ -65,7 +65,8 @@ namespace IviSdkCsharp.ModelsGeneration
 
         internal const string ModelPrefix = "Ivi";
 
-        private void GenerateModel(GeneratorExecutionContext context, INamedTypeSymbol targetType)
+        private void GenerateModel(GeneratorExecutionContext context, SemanticModel semanticModel,
+            INamedTypeSymbol targetType)
         {
             var propName = targetType.Name;
             var modelName = ModelPrefix + propName;
@@ -75,9 +76,10 @@ namespace IviSdkCsharp.ModelsGeneration
                 "using System.Collections.Generic;"
             };
 
+            var outputGenerator = new OutputGenerator(semanticModel);
             string source = targetType.TypeKind == TypeKind.Enum 
-                ? OutputGenerator.GenerateEnum(targetType, namespaces, modelName) 
-                : OutputGenerator.GenerateClass(targetType, namespaces, modelName);
+                ? outputGenerator.GenerateEnum(targetType, namespaces, modelName) 
+                : outputGenerator.GenerateClass(targetType, namespaces, modelName);
             context.AddSource(modelName + ".cs", source);
             Log(context, "Generating code for " + targetType.Name);
         }
