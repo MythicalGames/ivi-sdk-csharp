@@ -93,7 +93,7 @@ namespace IviSdkCsharp.ModelsGeneration
         {
             context.ReportDiagnostic(
                 Diagnostic.Create(
-                    new DiagnosticDescriptor(title, "some title", "{0}", "some category", DiagnosticSeverity.Info, true),
+                    new DiagnosticDescriptor(title, nameof(ModelsGenerator), "{0}", "model generation", DiagnosticSeverity.Info, true),
                     Location.None,
                     message
                 ));
