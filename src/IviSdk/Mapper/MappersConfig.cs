@@ -33,7 +33,7 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                 .ConstructUsing(item => new IviItem(item.GameInventoryId, item.GameItemTypeId, item.DgoodsId,
                     item.ItemName, item.PlayerId, item.OwnerSidechainAccount, item.SerialNumber, item.MetadataUri,
                     item.TrackingId, item.Metadata.Adapt<IviMetadata>(), item.ItemState,
-                    new DateTime(item.CreatedTimestamp), new DateTime(item.UpdatedTimestamp))).Compile(); 
+                     DateTimeOffset.FromUnixTimeSeconds (item.CreatedTimestamp).DateTime, DateTimeOffset.FromUnixTimeSeconds (item.UpdatedTimestamp).DateTime)).Compile(); 
             
             TypeAdapterConfig<IviMetadata, Metadata>.NewConfig()
                 .Map(dest => dest.Name, src => src.Name)
