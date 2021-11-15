@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 
 namespace IviSdkCsharp.ModelsGeneration
@@ -18,25 +17,10 @@ namespace IviSdkCsharp.ModelsGeneration
                 var model = context.Compilation.GetSemanticModel(finder.Root!.SyntaxTree);
                 var types = iviTypes.Select(x => (INamedTypeSymbol)model.GetTypeInfo(x.Type)!.Type!).ToArray();
                 var ordered = OrderTypes(context, types);
-                HashSet<string> namespaces = new()
-                {
-                    "using System;",
-                    "using System.Collections.Generic;"
-                };
-                var source = new StringBuilder($@"using System;
-using System.Collections.Generic;
-namespace {OutputGenerator.MythicalNamespace}
-{{
-");
                 foreach (var targetType in ordered)
                 {
-                    var modelSource = GenerateModel(context, model, targetType);
-                    source.AppendLine(modelSource);
-                    source.AppendLine();
+                    GenerateModel(context, model, targetType);
                 }
-
-                source.Append(@"}");
-                context.AddSource("MythicalGeneratedModels.cs", source.ToString());
             }
             else
             {
@@ -81,17 +65,23 @@ namespace {OutputGenerator.MythicalNamespace}
 
         internal const string ModelPrefix = "Ivi";
 
-        private string GenerateModel(GeneratorExecutionContext context, SemanticModel semanticModel, INamedTypeSymbol targetType)
+        private void GenerateModel(GeneratorExecutionContext context, SemanticModel semanticModel,
+            INamedTypeSymbol targetType)
         {
             var propName = targetType.Name;
             var modelName = ModelPrefix + propName;
+            HashSet<string> namespaces = new()
+            {
+                "using System;",
+                "using System.Collections.Generic;"
+            };
 
             var outputGenerator = new OutputGenerator(semanticModel);
             string source = targetType.TypeKind == TypeKind.Enum 
-                ? outputGenerator.GenerateEnum(targetType, modelName) 
-                : outputGenerator.GenerateClass(targetType, modelName);
-
-           return source;
+                ? outputGenerator.GenerateEnum(targetType, namespaces, modelName) 
+                : outputGenerator.GenerateClass(targetType, namespaces, modelName);
+            context.AddSource(modelName + ".cs", source);
+            Log(context, "Generating code for " + targetType.Name);
         }
 
         public void Initialize(GeneratorInitializationContext context)

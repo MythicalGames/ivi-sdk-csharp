@@ -13,11 +13,11 @@ namespace IviSdkCsharp.ModelsGeneration
         private const string Indent = "\t";
         private const string DoubleIndent = "\t\t";
         private const string TrippleIndent = "\t\t\t";
-        internal const string MythicalNamespace = "Mythical.Game.IviSdkCSharp.Model";
+        private const string MythicalNamespace = "Mythical.Game.IviSdkCSharp.Model";
 
         public OutputGenerator(SemanticModel model) => _model = model;
 
-        internal string GenerateClass(INamedTypeSymbol targetType, string modelName)
+        internal string GenerateClass(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
         {
             
             var allModelProps = targetType.GetMembers()
@@ -31,6 +31,10 @@ namespace IviSdkCsharp.ModelsGeneration
                 var ns = modelProp.Type.ContainingNamespace;
                 var isGoogle = ns!.ToDisplayString().StartsWith("Google.Protobuf"); // Google.Protobuf.WellKnownTypes.Struct, Google.Protobuf.Collections.RepeatableField<T>
                 var isGrpcGenerated = ModelsGenerator.IsGrpcGeneratedNamespace(ns);
+                if (!ns.IsGlobalNamespace && !isGoogle && !isGrpcGenerated )
+                {
+                    namespaces.Add($"using {ns.ToDisplayString()};");
+                }
 
                 var propertyType = GetPropertyType(isGoogle, isGrpcGenerated, modelProp);
                 var name = modelProp.Name;
@@ -42,12 +46,17 @@ namespace IviSdkCsharp.ModelsGeneration
 
             string constructors = GenerateConsructors(modelName, modelProperties);
 
-            return $@"    
+            return $@"{string.Join(Environment.NewLine, namespaces)}
+
+namespace {MythicalNamespace}
+{{    
 {Indent}public partial class {modelName}
 {Indent}{{
 {constructors}
 {props}
-{Indent}}}";
+{Indent}}}
+}}
+";
         }
 
         private string GenerateConsructors(string modelName, Dictionary<string, PropertyType> modelProperties)
@@ -78,12 +87,18 @@ namespace IviSdkCsharp.ModelsGeneration
             }
         }
 
-        internal string GenerateEnum(INamedTypeSymbol targetType, string modelName)
+        internal string GenerateEnum(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
         {
             var enumSyntax = targetType.DeclaringSyntaxReferences[0].GetSyntax();
             var enumDefinition = Regex.Replace(enumSyntax.ToString(), @"\[.+]\s+", "", RegexOptions.Multiline)
                 .Replace(targetType.Name, modelName);
-            return enumDefinition;
+            return $@"{string.Join(Environment.NewLine, namespaces)}
+
+namespace {MythicalNamespace}
+{{    
+{enumDefinition}
+}}
+";
         }
 
         private static PropertyType GetPropertyType(bool isGoogle, bool isGrpcGenerated, IPropertySymbol modelProp)
