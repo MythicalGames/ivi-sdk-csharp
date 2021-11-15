@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -56,22 +57,21 @@ namespace Games.Mythical.Ivi.Sdk.Client
             return GrpcChannel.ForAddress(address, options);
         }
 
-        protected static (Func<Task> wait, Action reset) GetReconnectAwaiter<T>(ILogger<T>? logger) 
-            where T : AbstractIVIClient
+        protected static (Func<Task> wait, Action reset) GetReconnectAwaiter(ILogger? logger) 
         {
-            var (wait, reset) = new ReconnectAwaiter<T>(logger);
+            var (wait, reset) = new ReconnectAwaiter(logger);
             return (wait, reset);
         }
 
-        private class ReconnectAwaiter<T> where T: AbstractIVIClient
+        private class ReconnectAwaiter
         {
-            private readonly ILogger<T>? _logger;
+            private readonly ILogger? _logger;
             private readonly Random rnd = new((int) DateTime.Now.Ticks);
             private bool _skippedDelayingFirstRetry;
             private int _requestCount = 1;
             private const int MaxPower = 15; // 2^15 = 32768 milliseconds ~ 33 seconds
 
-            public ReconnectAwaiter(ILogger<T>? logger) => _logger = logger;
+            public ReconnectAwaiter(ILogger? logger) => _logger = logger;
 
             private async Task WaitBeforeReconnect()
             {

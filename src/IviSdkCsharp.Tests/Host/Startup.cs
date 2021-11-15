@@ -1,5 +1,6 @@
 using System.Security.Authentication;
 using IviSdkCsharp.Tests.ItemType.Services;
+using IviSdkCsharp.Tests.Order.Services;
 using IviSdkCsharp.Tests.Player.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -35,6 +36,7 @@ namespace IviSdkCsharp.Tests.Host
             {
                 endpoints.MapGrpcService<FakePlayerService>();
                 endpoints.MapGrpcService<FakeItemTypeService>();
+                endpoints.MapGrpcService<FakeOrderService>();
             });
         }
     }
