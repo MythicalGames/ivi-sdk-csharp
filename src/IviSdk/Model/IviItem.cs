@@ -17,8 +17,8 @@ namespace Mythical.Game.IviSdkCSharp.Model
         public string TrackingId { get; }
         public IviMetadata Metadata { get; }
         public ItemState State { get; }
-        public DateTime CreatedTimestamp { get; }
-        public DateTime UpdatedTimestamp { get; }
+        public DateTimeOffset CreatedTimestamp { get; }
+        public DateTimeOffset UpdatedTimestamp { get; }
 
         public IviItem()
         {

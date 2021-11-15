@@ -2,7 +2,6 @@
 using System.Net.Http;
 using IviSdkCsharp.Tests.Host;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Mythical.Game.IviSdkCSharp.Mapper;
 using Xunit;
 
 namespace IviSdkCsharp.Tests
@@ -13,7 +12,6 @@ namespace IviSdkCsharp.Tests
         public GrpcTestServerFixture()
         {
             var factory = new TestWebApplicationFactory();
-            MappersConfig.RegisterMappings();
             Client = factory.CreateClient(new WebApplicationFactoryClientOptions
             {
                 BaseAddress = new Uri("https://localhost")

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Mythical.Game.IviSdkCSharp.Mapper;
 
 namespace IviSdkCsharp.Tests.Host
 {
@@ -20,7 +19,6 @@ namespace IviSdkCsharp.Tests.Host
             {
                 app.UseDeveloperExceptionPage();
             }
-            MappersConfig.RegisterMappings();
             app.UseRouting();
             app.Use(async (context, next) =>
             {
