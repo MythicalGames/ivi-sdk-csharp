@@ -41,7 +41,7 @@ namespace IviSdkCsharp.Tests
         }
         
         [Fact]
-        public async Task GetPlayerAsync_gRPCServiceThrows_ThrowsIVIException()
+        public void GetPlayerAsync_gRPCServiceThrows_ThrowsIVIException()
         {
             var playerClient = new IviPlayerClient(NullLogger<IviPlayerClient>.Instance, _fixture.Client);
             
