@@ -69,10 +69,16 @@ namespace IviSdkCsharp.Tests.Item.Services
 
         public override Task<UpdateItemMetadataResponse> UpdateItemMetadata(UpdateItemMetadataRequest request, ServerCallContext context)
         {
-            var testMetadata = new IviMetadata("TestingMetaData", "Description of Test", "someImgUrl",
-                new Dictionary<string, object>());
-            var testMetadataList = new IviMetadata("testingListMetadata", "description of update list", "justanotherimgurl",
-                new Dictionary<string, object>());
+            var testMetadata = new IviMetadata{
+                Name = "TestingMetaData", 
+                Description = "Description of Test", 
+                Image = "someImgUrl"
+            };
+            var testMetadataList = new IviMetadata{
+                Name = "testingListMetadata", 
+                Description = "description of update list", 
+                Image = "justanotherimgurl" 
+            };
             request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
             
             foreach (var item in request.UpdateItems) {

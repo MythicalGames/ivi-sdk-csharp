@@ -152,8 +152,12 @@ namespace IviSdkCsharp.Tests.Item
                     ItemState.Issued);
             await itemClient.IssueItemAsync(GameInventoryIdExisting, "SomePlayer", "wizardStaff", "gameTypeIdThing", 010,
                 "notUsed",
-                new IviMetadata("someMetaData", "description of metadata", "someimguri",
-                    new Dictionary<string, object>()), "mythicalStore", stringValue, stringValue,
+                new IviMetadata{
+                    Name = "someMetaData", 
+                    Description = "description of metadata", 
+                    Image = "someimguri"
+                }
+                , "mythicalStore", stringValue, stringValue,
                 CancellationToken.None);
 
             executor.LastStateCall.ShouldBe(expectedStateCall);
@@ -166,8 +170,11 @@ namespace IviSdkCsharp.Tests.Item
         
             Should.Throw<IVIException>(async () => await itemClient.IssueItemAsync(GameInventoryIdThrow, "SomePlayer", "wizardStaff", "gameTypeIdThing", 010,
                 "notUsed",
-                new IviMetadata("someMetaData", "description of metadata", "someimguri",
-                    new Dictionary<string, object>()), "mythicalStore", "1234", "failedTrackingId",
+                new IviMetadata{
+                    Name = "someMetaData", 
+                    Description = "description of metadata", 
+                    Image = "someimguri"
+                }, "mythicalStore", "1234", "failedTrackingId",
                 CancellationToken.None));
         }
 
@@ -179,7 +186,11 @@ namespace IviSdkCsharp.Tests.Item
 
             // This is asserted inside the service to check if the request is passing the correct
             // params down to the gRPC service
-            await itemClient.UpdateItemMetadataAsync(GameInventoryIdExisting, new IviMetadata("TestingMetaData", "Description of Test", "someImgUrl", new Dictionary<string, object>()));
+            await itemClient.UpdateItemMetadataAsync(GameInventoryIdExisting, new IviMetadata{
+                Name = "TestingMetaData", 
+                Description = "Description of Test", 
+                Image = "someImgUrl"
+            });
         }
         
         [Fact]
@@ -189,14 +200,21 @@ namespace IviSdkCsharp.Tests.Item
 
             // This is asserted inside the service to check if the request is passing the correct
             // params down to the gRPC service
-            Should.Throw<IVIException>(async () => await itemClient.UpdateItemMetadataAsync(GameInventoryIdThrow, new IviMetadata("TestingMetaData", "Description of Test", "someImgUrl", new Dictionary<string, object>())));        
+            Should.Throw<IVIException>(async () => await itemClient.UpdateItemMetadataAsync(GameInventoryIdThrow, new IviMetadata{
+                Name = "TestingMetaData", 
+                Description = "Description of Test", 
+                Image = "someImgUrl"
+            }));        
         }
         
         [Fact]
         public async Task UpdateItemMetadataAsync_ValidListRequest()
         {
-            var testMetadata = new IviMetadata("testingListMetadata", "description of update list", "justanotherimgurl",
-                new Dictionary<string, object>());
+            var testMetadata = new IviMetadata{
+                Name = "testingListMetadata", 
+                Description = "description of update list",
+                Image = "justanotherimgurl"
+            };
             List<IviMetadataUpdate>? updateList = new() {new IviMetadataUpdate(GameInventoryIdListed, testMetadata)};
             updateList.Add(new IviMetadataUpdate(GameInventoryIdIssueId, testMetadata));
             var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);

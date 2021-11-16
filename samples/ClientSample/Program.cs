@@ -32,7 +32,7 @@ namespace ClientSample
                 UpdateSubscription = new LoggingItemUpdateSubscription(logger)
             };
 
-            var items = await itemClient.GetItems(DateTimeOffset.MinValue, 4, SortOrder.Asc);
+            var items = await itemClient.GetItemsAsync(DateTimeOffset.MinValue, 4, SortOrder.Asc);
             logger.LogInformation("GetItemsAsync: {@Items}", items);
         }
 
@@ -65,7 +65,13 @@ namespace ClientSample
                 {"item_class", "the class"}
             };
 
-            var iviMetadata = new IviMetadata("name", "desc", "sdsfs", metadataProperties);
+            var iviMetadata = new IviMetadata
+            {
+                Name = "name",
+                Description = "desc",
+                Image = "adsfs",
+                Properties = metadataProperties
+            };
 
             var iviItemType = new IviItemType
             {
