@@ -56,7 +56,13 @@ namespace IviSdkCsharp.Tests.Order
                     GameInventoryIds = new List<string>{ "truck1" },
                     GameItemTypeId = "type1",
                     ItemName = "the-item",
-                    Metadata = new IviMetadata("meta1", "something", "uri://img.jpg", new())
+                    Metadata = new IviMetadata
+                    {
+                        Name = "meta1",
+                        Description = "something",
+                        Image = "uri://img.jpg",
+                        Properties = new(),
+                    }
                 }
             };
             var inputMetadata = new Dictionary<string, object>()
@@ -216,10 +222,16 @@ namespace IviSdkCsharp.Tests.Order
                         GameInventoryIds = new() { "inv1" },
                         GameItemTypeId = "id1",
                         ItemName = "some-item",
-                        Metadata = new IviMetadata("meta1", "the item", "uri://something.jpg", new()
+                        Metadata = new()
                         {
-                            ["what"] = "no"
-                        }),
+                            Name = "meta1",
+                            Description = "the item",
+                            Image = "uri://something.jpg",
+                            Properties = new()
+                            {
+                                ["what"] = "no"
+                            },
+                        }
                     },
                 },
                 RequestIp = "3.2.1.0",
@@ -346,10 +358,16 @@ namespace IviSdkCsharp.Tests.Order
                         GameInventoryId = "inv1",
                         GameItemTypeId = "item-type1",
                         ItemName = "item-one",
-                        Metadata = new ("name1", "desc1", "img.jpg", new ()
+                        Metadata = new()
+                        {
+                            Name = "name1",
+                            Description = "desc1",
+                            Image = "img.jpg",
+                            Properties = new()
                             {
                                 ["foot"] = "lettuce"
-                            })
+                            }
+                        }
                     }
                 },
                 ProcessorResponse = "proc1",
