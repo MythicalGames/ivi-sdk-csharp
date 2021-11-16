@@ -7,22 +7,17 @@ using Microsoft.CodeAnalysis;
 
 namespace IviSdkCsharp.ModelsGeneration
 {
-    internal class OutputGenerator
+    internal static class OutputGenerator
     {
-        private readonly SemanticModel _model;
         private const string Indent = "\t";
         private const string DoubleIndent = "\t\t";
-        private const string TrippleIndent = "\t\t\t";
+        private const string TripleIndent = "\t\t\t";
         private const string MythicalNamespace = "Mythical.Game.IviSdkCSharp.Model";
 
-        public OutputGenerator(SemanticModel model) => _model = model;
-
-        internal string GenerateClass(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
+        internal static string GenerateClass(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
         {
             
-            var allModelProps = targetType.GetMembers()
-                .OfType<IPropertySymbol>().Where(x => !ModelsGenerator.PropTypesToSkip.Contains(x.Type.Name)).ToArray();
-
+            var allModelProps = ModelsGenerator.GetAllProperties(targetType).ToArray();
 
             var props = new StringBuilder();
             Dictionary<string, PropertyType> modelProperties = new(allModelProps.Length);
@@ -59,7 +54,7 @@ namespace {MythicalNamespace}
 ";
         }
 
-        private string GenerateConsructors(string modelName, Dictionary<string, PropertyType> modelProperties)
+        private static string GenerateConsructors(string modelName, Dictionary<string, PropertyType> modelProperties)
         {
             StringBuilder result = new(DoubleIndent);
             result.Append("public ").Append(modelName).Append("()").AppendLine();
@@ -81,13 +76,13 @@ namespace {MythicalNamespace}
             void AddPropertyInitialize(string name, string initValue)
             {
                 result.AppendLine();
-                result.Append(TrippleIndent).Append(name);
+                result.Append(TripleIndent).Append(name);
                 result.Append(" = ");
                 result.Append(initValue).Append(";");
             }
         }
 
-        internal string GenerateEnum(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
+        internal static string GenerateEnum(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
         {
             var enumSyntax = targetType.DeclaringSyntaxReferences[0].GetSyntax();
             var enumDefinition = Regex.Replace(enumSyntax.ToString(), @"\[.+]\s+", "", RegexOptions.Multiline)
