@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using Google.Protobuf.Collections;
+using Google.Protobuf.WellKnownTypes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,19 +14,26 @@ namespace Mythical.Game.IviSdkCSharp
         internal static Struct ToProtoStruct(this IDictionary<string, object> value)
         {
             var result = new Struct();
-            foreach (var (k, v) in value)
+            if (value != null)
             {
-                result.Fields.Add(k, v.ToProtoValue());
+                foreach (var (k, v) in value)
+                {
+                    result.Fields.Add(k, v.ToProtoValue());
+                }
             }
             return result;
         }
 
+
         internal static Dictionary<string, object> ToDictionary(this Struct value)
         {
             var result = new Dictionary<string, object>();
-            foreach (var (k, v) in value.Fields)
+            if (value != null)
             {
-                result.Add(k, v.BoolValue);
+                foreach (var (k, v) in value.Fields)
+                {
+                    result.Add(k, v.BoolValue);
+                }
             }
             return result;
         }

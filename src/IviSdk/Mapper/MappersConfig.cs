@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Serialization;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Ivi.Proto.Api.Itemtype;
 using Ivi.Proto.Api.Order;
@@ -42,6 +43,20 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                     }
                 }).Compile();
 
+            TypeAdapterConfig<IviItemTypeOrder, ItemTypeOrder>.NewConfig()
+                .AfterMapping((src, dest) =>
+                {
+                    dest.GameInventoryIds.Add(src.GameInventoryIds);
+                })
+                .Compile();
+
+            TypeAdapterConfig<ItemTypeOrder, IviItemTypeOrder>.NewConfig()
+                .AfterMapping((src, dest) =>
+                {
+                    dest.GameInventoryIds = new List<string>(src.GameInventoryIds);
+                })
+                .Compile();
+
             TypeAdapterConfig<List<IviItemTypeOrder>, ItemTypeOrders>.NewConfig()
                 .AfterMapping((src, dest) =>
                 {
@@ -60,6 +75,7 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
             TypeAdapterConfig<PaymentProviderOrderProto, IIviPaymentProviderOrder?>.NewConfig()
                 .ConstructUsing(src => src.ProviderCase == PaymentProviderOrderProto.ProviderOneofCase.Bitpay ? src.Adapt<IviBitpayOrder>() : null)
                 .Compile();
+
         }
     }
 }
