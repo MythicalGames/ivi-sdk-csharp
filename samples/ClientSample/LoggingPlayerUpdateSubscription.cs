@@ -1,4 +1,5 @@
-﻿using Games.Mythical.Ivi.Sdk.Client;
+﻿using System.Threading.Tasks;
+using Games.Mythical.Ivi.Sdk.Client;
 using Ivi.Proto.Common.Player;
 using IviSdkCsharp.Client.Executor;
 using Microsoft.Extensions.Logging;
@@ -11,9 +12,10 @@ namespace ClientSample
 
         public LoggingPlayerUpdateSubscription(ILogger<IviPlayerClient> logger) => _logger = logger;
 
-        public void UpdatePlayer(string playerId, string trackingId, PlayerState playerState)
+        public Task UpdatePlayerAsync(string playerId, string trackingId, PlayerState playerState)
         {
             _logger.LogInformation("Player Update: {@playerUpdateData}", new UpdatePlayerData(playerId, trackingId, playerState));
+            return Task.CompletedTask;
         }
 
         record UpdatePlayerData(string playerId, string trackingId, PlayerState playerState);

@@ -81,7 +81,7 @@ namespace IviSdkCsharp.Tests
             await itemTypeClient.CreateItemTypeAsync(new IviItemType
             {
                 GameItemTypeId = GameItemTypeIdNew,
-                TypeState = ItemTypeState.Failed
+                ItemTypeState = IviItemTypeState.Failed
             });
 
             executor.LastCall.ShouldBe(expectedCall);

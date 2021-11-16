@@ -1,4 +1,5 @@
 using System.Security.Authentication;
+using IviSdkCsharp.Tests.Item.Services;
 using IviSdkCsharp.Tests.ItemType.Services;
 using IviSdkCsharp.Tests.Order.Services;
 using IviSdkCsharp.Tests.Player.Services;
@@ -37,6 +38,7 @@ namespace IviSdkCsharp.Tests.Host
                 endpoints.MapGrpcService<FakePlayerService>();
                 endpoints.MapGrpcService<FakeItemTypeService>();
                 endpoints.MapGrpcService<FakeOrderService>();
+                endpoints.MapGrpcService<FakeItemService>();
             });
         }
     }
