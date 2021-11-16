@@ -32,7 +32,7 @@ namespace Mythical.Game.IviSdkCSharp.Model
             Metadata = new IviMetadata("", "", "", new Dictionary<string, object>());
         }
 
-        public IviItem(string gameInventoryId, string gameItemTypeId, long dGoodsId, string itemName, string playerId, string ownerSidechainAccount, int serialNumber, string metadataUri, string trackingId, IviMetadata metadata, ItemState itemState, DateTime createdTimestamp, DateTime updatedTimestamp)
+        public IviItem(string gameInventoryId, string gameItemTypeId, long dGoodsId, string itemName, string playerId, string ownerSidechainAccount, int serialNumber, string metadataUri, string trackingId, IviMetadata metadata, ItemState itemState, DateTimeOffset createdTimestamp, DateTimeOffset updatedTimestamp)
         {
             this.GameInventoryId = gameInventoryId;
             this.GameItemTypeId = gameItemTypeId;
