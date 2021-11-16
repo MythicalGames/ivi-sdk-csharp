@@ -27,7 +27,7 @@ namespace IviSdkCsharp.Tests.Order
         [Fact]
         public async Task CreateOrder_CanMapInputToRequestType()
         {
-            var client = new IviOrderClient(NullLogger<IviOrderClient>.Instance, _fixture.Client);
+            var client = CreateClient();
             CreateOrderRequest request = null;
             var mock = new Mock<FakeOrderService>();
             mock.Setup(s => s.CreateOrder(It.IsAny<CreateOrderRequest>(), It.IsAny<ServerCallContext>()))
@@ -171,7 +171,7 @@ namespace IviSdkCsharp.Tests.Order
             mock.Setup(s => s.CreateOrder(It.IsAny<CreateOrderRequest>(), It.IsAny<ServerCallContext>()))
                 .Returns(() => Task.FromResult(actualOrder));
 
-            var client = new IviOrderClient(NullLogger<IviOrderClient>.Instance, _fixture.Client);
+            var client = CreateClient();
             FakeOrderService.UseMock(mock.Object);
 
             var expectedOrder = new IviOrder
@@ -230,8 +230,137 @@ namespace IviSdkCsharp.Tests.Order
 
             var resultOrder = await client.CreatePrimaryOrderAsync("", "", 0m, expectedOrder.Address, PaymentProviderId.Bitpay, new(), new(), "");
 
-            resultOrder.ShouldBeEquivalentTo(expectedOrder);
-            
+            resultOrder.ShouldBeEquivalentTo(expectedOrder);            
         }
+
+        [Fact]
+        public async Task GetOrder_CanMapToRequest()
+        {
+            var client = CreateClient();
+            var mock = new Mock<FakeOrderService>();
+            GetOrderRequest request = null;
+            mock.Setup(f => f.GetOrder(It.IsAny<GetOrderRequest>(), It.IsAny<ServerCallContext>()))
+                .Callback<GetOrderRequest, ServerCallContext>((req, ctx) => { request = req; })
+                .Returns(() => Task.FromResult(new Ivi.Proto.Api.Order.Order { }));
+
+            FakeOrderService.UseMock(mock.Object);
+            var result = await client.GetOrder("asdf");
+            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.OrderId.ShouldBe("asdf");
+        }
+
+        [Fact]
+        public async Task GetOrder_CanMapGrpcToOrder()
+        {
+            var mock = new Mock<FakeOrderService>();
+            mock.Setup(s => s.GetOrder(It.IsAny<GetOrderRequest>(), It.IsAny<ServerCallContext>()))
+                .Returns(() => Task.FromResult(new Ivi.Proto.Api.Order.Order 
+                { 
+                    OrderId = "asdf"
+                }));
+
+            var client = CreateClient();
+            FakeOrderService.UseMock(mock.Object);
+
+            var result = await client.GetOrder("23");
+            result.OrderId.ShouldBe("asdf");
+        }
+
+        [Fact]
+        public async Task FinalizeOrder_CanMapBitpayRequest()
+        {
+            FinalizeOrderRequest request = null;
+            var mock = new Mock<FakeOrderService>();
+            mock.Setup(s => s.FinalizeOrder(It.IsAny<FinalizeOrderRequest>(), It.IsAny<ServerCallContext>()))
+                .Callback<FinalizeOrderRequest, ServerCallContext>((req, ctx) => { request = req; })
+                .Returns(() => Task.FromResult(new FinalizeOrderAsyncResponse {  }));
+            FakeOrderService.UseMock(mock.Object);
+
+            var client = CreateClient();
+            await client.FinalizeBitpayOrderAsync("order1", "inv1", "sess1");
+
+            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.FraudSessionId.ShouldBe("sess1");
+            request.OrderId = "order1";
+            request.PaymentRequestData.ShouldBe(new PaymentRequestProto
+            {
+                Bitpay = new BitPayPaymentRequestProto
+                {
+                    InvoiceId = "inv1"
+                }
+            });
+        }
+
+        [Fact]
+        public async Task FinalizeOrder_CanMapGrpcToFinalizeResponse()
+        {
+            var actualResp = new FinalizeOrderAsyncResponse
+            {
+                FraudScore = new FraudResultProto
+                {
+                    FraudOmniscore = "omni1",
+                    FraudScore = 12,
+                },
+                OrderStatus = Ivi.Proto.Common.Order.OrderState.Declined,
+                PaymentInstrumentType = "type1",
+                PendingIssuedItems = new(),
+                ProcessorResponse = "proc1",
+                Success = true,
+                TransactionId = "tran1"
+            };
+            actualResp.PendingIssuedItems.PurchasedItems.Add(new IssuedItem()
+            {
+                AmountPaid = "234",
+                Currency = "money",
+                GameInventoryId = "inv1",
+                GameItemTypeId = "item-type1",
+                ItemName = "item-one",
+                Metadata = new Ivi.Proto.Common.Metadata
+                {
+                    Name = "name1",
+                    Description = "desc1",
+                    Image = "img.jpg",
+                    Properties = new Struct(),
+                }
+            });
+            actualResp.PendingIssuedItems.PurchasedItems[0].Metadata.Properties.Fields.Add("foot", Value.ForString("lettuce"));
+            var mock = new Mock<FakeOrderService>();
+            mock.Setup(s => s.FinalizeOrder(It.IsAny<FinalizeOrderRequest>(), It.IsAny<ServerCallContext>()))
+                .Returns(() => Task.FromResult(actualResp));
+            FakeOrderService.UseMock(mock.Object);
+
+            var client = CreateClient();
+            var resultResponse = await client.FinalizeBitpayOrderAsync("order1", "inv1", "sess1");
+
+            var expectedResp = new IviFinalizeOrderResponse
+            {
+                FraudScore = new IviFraudResult { FraudOmniscore = "omni1", FraudScore = 12 },
+                OrderStatus = Ivi.Proto.Common.Order.OrderState.Declined,
+                PaymentInstrumentType = "type1",
+                PendingIssuedItems = new()
+                {
+                    new ()
+                    {
+                        AmountPaid = 234m,
+                        Currency = "money",
+                        GameInventoryId = "inv1",
+                        GameItemTypeId = "item-type1",
+                        ItemName = "item-one",
+                        Metadata = new ("name1", "desc1", "img.jpg", new ()
+                            {
+                                ["foot"] = "lettuce"
+                            })
+                    }
+                },
+                ProcessorResponse = "proc1",
+                Success = true,
+                TransactionId = "tran1",
+            };
+
+            resultResponse.ShouldBeEquivalentTo(expectedResp);
+        }
+
+        private IviOrderClient CreateClient()
+            => new(NullLogger<IviOrderClient>.Instance, _fixture.Client);
     }
 }

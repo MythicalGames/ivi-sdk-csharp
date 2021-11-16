@@ -66,9 +66,6 @@ namespace Games.Mythical.Ivi.Sdk.Client
             return result.Adapt<IviOrder>();
         }
 
-        public Task<IviFinalizeOrderResponse> FinalizeBraintreeOrderAsync(string orderId, string clientToken, string paymentNonce, string fraudSessionId)
-            => FinalizeOrder(orderId, fraudSessionId, new PaymentRequestProto { Braintree = new BraintreePaymentRequestProto { BraintreeClientToken = clientToken, BraintreePaymentNonce = paymentNonce } });
-
         public Task<IviFinalizeOrderResponse> FinalizeBitpayOrderAsync(string orderId, string invoiceId, string fraudSessionId)
             => FinalizeOrder(orderId, fraudSessionId, new PaymentRequestProto { Bitpay = new BitPayPaymentRequestProto { InvoiceId = invoiceId } });
 

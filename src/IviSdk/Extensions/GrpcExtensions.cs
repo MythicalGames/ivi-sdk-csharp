@@ -11,6 +11,9 @@ namespace Mythical.Game.IviSdkCSharp
 {
     public static class GrpcExtensions
     {
+        internal static decimal ToDecimal(this string value)
+            => decimal.TryParse(value, out var result) ? result : 0m;
+
         internal static Struct ToProtoStruct(this IDictionary<string, object> value)
         {
             var result = new Struct();
@@ -23,7 +26,6 @@ namespace Mythical.Game.IviSdkCSharp
             }
             return result;
         }
-
 
         internal static Dictionary<string, object> ToDictionary(this Struct value)
         {

@@ -52,6 +52,10 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                 })
                 .Compile();
 
+            TypeAdapterConfig<string, decimal>.NewConfig()
+                .MapWith(src => src.ToDecimal())
+                .Compile();
+
             TypeAdapterConfig<Dictionary<string, object>, Struct>.NewConfig()
                 .MapWith(src => src.ToProtoStruct())
                 .Compile();
@@ -93,6 +97,16 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                     if (src.PurchasedItems != null)
                     {
                         dest.PurchasedItems = src.PurchasedItems.PurchasedItems.Select(o => o.Adapt<IviItemTypeOrder>()).ToList();
+                    }
+                })
+                .Compile();
+
+            TypeAdapterConfig<FinalizeOrderAsyncResponse, IviFinalizeOrderResponse>.NewConfig()
+                .AfterMapping((src, dest) =>
+                {
+                    if (src.PendingIssuedItems != null)
+                    {
+                        dest.PendingIssuedItems = src.PendingIssuedItems.PurchasedItems.Select(o => o.Adapt<IviIssuedItem>()).ToList();
                     }
                 })
                 .Compile();

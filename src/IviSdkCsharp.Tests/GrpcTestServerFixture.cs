@@ -20,8 +20,8 @@ namespace IviSdkCsharp.Tests
 
         public HttpClient Client { get;  }
     }
-    
-    [CollectionDefinition(GrpcTestServerFixture.GrpcTestServerFixtureCollection)]
+
+    [CollectionDefinition(GrpcTestServerFixture.GrpcTestServerFixtureCollection, DisableParallelization = true)]
     public class DatabaseCollection : ICollectionFixture<GrpcTestServerFixture>
     {
         // This class has no code, and is never created. Its purpose is simply
