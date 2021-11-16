@@ -32,7 +32,7 @@ namespace Mythical.Game.IviSdkCSharp
             {
                 foreach (var (k, v) in value.Fields)
                 {
-                    result.Add(k, v.BoolValue);
+                    result.Add(k, v.ToObject()!);
                 }
             }
             return result;

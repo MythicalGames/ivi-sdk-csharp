@@ -18,7 +18,7 @@ namespace Mythical.Game.IviSdkCSharp.Model
         public string? GameInventoryId { get; set; }
         public string? ItemName { get; set; }
         public string? GameItemTypeId { get; set; }
-        public decimal? AmountPaid { get; set; }
+        public decimal AmountPaid { get; set; }
         public string? Currency { get; set; }
         public IviMetadata? Metadata { get; set; }
     }
@@ -57,13 +57,13 @@ namespace Mythical.Game.IviSdkCSharp.Model
     {
         public string? OrderId { get; set; }
         public string? BuyerPlayerId { get; set; }
-        public string? Tax { get; set; }
-        public string? Total { get; set; }
+        public decimal Tax { get; set; }
+        public decimal Total { get; set; }
         public OrderState? OrderStatus { get; set; }
         public IviAddress? Address { get; set; }
         public Dictionary<string, object>? Metadata { get; set; }
         public string? CreatedBy { get; set; }
-        public long CreatedTimestamp { get; set; }
+        public DateTimeOffset CreatedTimestamp { get; set; }
         public string? RequestIp { get; set; }
         public string? EnvironmentId { get; set; }
         public PaymentProviderId? PaymentProviderId { get; set; }
@@ -93,7 +93,7 @@ namespace Mythical.Game.IviSdkCSharp.Model
         public List<string>? GameInventoryIds { get; set; }
         public string? ItemName { get; set; }
         public string? GameItemTypeId { get; set; }
-        public string? AmountPaid { get; set; }
+        public decimal? AmountPaid { get; set; }
         public string? Currency { get; set; }
         public IviMetadata? Metadata { get; set; }
     }

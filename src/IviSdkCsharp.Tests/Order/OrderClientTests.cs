@@ -51,7 +51,7 @@ namespace IviSdkCsharp.Tests.Order
             {
                 new()
                 {
-                    AmountPaid = "5",
+                    AmountPaid = 5m,
                     Currency = "dollars-money",
                     GameInventoryIds = new List<string>{ "truck1" },
                     GameItemTypeId = "type1",
@@ -108,6 +108,130 @@ namespace IviSdkCsharp.Tests.Order
             request.RequestIp.ShouldBe("1.0.0.2");
             request.StoreId.ShouldBe("123store");
             request.SubTotal.ShouldBe("324");
+        }
+
+        [Fact]
+        public async Task CreateTask_CanMapGrpcToOrder()
+        {
+            var actualOrder = new Ivi.Proto.Api.Order.Order
+            {
+                Address = new ()
+                {
+                    AddressLine1 = "ln1",
+                    AddressLine2 = "ln2",
+                    City = "cty",
+                    CountryIsoAlpha2 = "ctabbr",
+                    CountryName = "ct",
+                    FirstName = "fn",
+                    LastName = "ln",
+                    PostalCode = "zip",
+                    State = "st",
+                },
+                BuyerPlayerId = "buyer1",
+                CreatedBy = "me",
+                CreatedTimestamp = new DateTimeOffset(2000, 5, 5, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds(),
+                EnvironmentId = IviConfiguration.EnvironmentId,
+                Metadata = new Struct(),
+                OrderId = "order1",
+                OrderStatus = Ivi.Proto.Common.Order.OrderState.Declined,
+                PaymentProviderData = new PaymentProviderOrderProto 
+                { 
+                    Bitpay = new BitPayProto { Invoice = new Struct() }
+                },
+                PaymentProviderId = PaymentProviderId.Bitpay,
+                PurchasedItems = new (),
+                RequestIp = "3.2.1.0",
+                StoreId = "store1",
+                Tax = "1",
+                Total = "2",
+            };
+            actualOrder.Metadata.Fields.Add(new Dictionary<string, Value>
+            {
+                ["truck"] = Value.ForString("foo"),
+            });
+            actualOrder.PaymentProviderData.Bitpay.Invoice.Fields.Add("truck3", Value.ForString("ok"));
+            actualOrder.PurchasedItems.PurchasedItems.Add(new ItemTypeOrder
+            {
+                AmountPaid = "234",
+                Currency = "coins",
+                GameItemTypeId = "id1",
+                ItemName = "some-item",
+                Metadata = new Ivi.Proto.Common.Metadata
+                {
+                    Name = "meta1",
+                    Description = "the item",
+                    Image = "uri://something.jpg",
+                    Properties = new Struct()
+                }
+            });
+            actualOrder.PurchasedItems.PurchasedItems[0].Metadata.Properties.Fields.Add("what", Value.ForString("no"));
+            actualOrder.PurchasedItems.PurchasedItems[0].GameInventoryIds.Add("inv1");
+
+            var mock = new Mock<FakeOrderService>();
+            mock.Setup(s => s.CreateOrder(It.IsAny<CreateOrderRequest>(), It.IsAny<ServerCallContext>()))
+                .Returns(() => Task.FromResult(actualOrder));
+
+            var client = new IviOrderClient(NullLogger<IviOrderClient>.Instance, _fixture.Client);
+            FakeOrderService.UseMock(mock.Object);
+
+            var expectedOrder = new IviOrder
+            {
+                Address = new IviAddress
+                {
+                    AddressLine1 = "ln1",
+                    AddressLine2 = "ln2",
+                    City = "cty",
+                    CountryIsoAlpha2 = "ctabbr",
+                    CountryName = "ct",
+                    FirstName = "fn",
+                    LastName = "ln",
+                    PostalCode = "zip",
+                    State = "st",
+                },
+                BuyerPlayerId = "buyer1",
+                CreatedBy = "me",
+                CreatedTimestamp = new DateTimeOffset(2000, 5, 5, 0, 0, 0, TimeSpan.Zero),
+                EnvironmentId = IviConfiguration.EnvironmentId,
+                ListingId = "",
+                Metadata = new ()
+                {
+                    ["truck"] = "foo",
+                },
+                OrderId = "order1",
+                OrderStatus = Ivi.Proto.Common.Order.OrderState.Declined,
+                PaymentProviderData = new IviBitpayOrder
+                {
+                    Invoice = new ()
+                    {
+                        ["truck3"] = "ok"
+                    }
+                },
+                PaymentProviderId = PaymentProviderId.Bitpay,
+                PurchasedItems = new ()
+                {
+                    new ()
+                    {
+                        AmountPaid = 234m,
+                        Currency = "coins",
+                        GameInventoryIds = new() { "inv1" },
+                        GameItemTypeId = "id1",
+                        ItemName = "some-item",
+                        Metadata = new IviMetadata("meta1", "the item", "uri://something.jpg", new()
+                        {
+                            ["what"] = "no"
+                        }),
+                    },
+                },
+                RequestIp = "3.2.1.0",
+                StoreId = "store1",
+                Tax = 1m,
+                Total = 2m,
+            };
+
+            var resultOrder = await client.CreatePrimaryOrderAsync("", "", 0m, expectedOrder.Address, PaymentProviderId.Bitpay, new(), new(), "");
+
+            resultOrder.ShouldBeEquivalentTo(expectedOrder);
+            
         }
     }
 }
