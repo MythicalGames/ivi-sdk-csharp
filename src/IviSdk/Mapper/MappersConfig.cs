@@ -1,5 +1,7 @@
-﻿using System.Xml.Serialization;
+﻿using System;
+using System.Xml.Serialization;
 using Google.Protobuf.WellKnownTypes;
+using Ivi.Proto.Api.Item;
 using Ivi.Proto.Api.Itemtype;
 using Ivi.Proto.Common;
 using Mapster;
@@ -26,7 +28,13 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                      src.Metadata.Adapt(dest.Metadata);
                 })
                 .Compile(); 
-
+            
+            TypeAdapterConfig<Item, IviItem>.NewConfig()
+                .ConstructUsing(item => new IviItem(item.GameInventoryId, item.GameItemTypeId, item.DgoodsId,
+                    item.ItemName, item.PlayerId, item.OwnerSidechainAccount, item.SerialNumber, item.MetadataUri,
+                    item.TrackingId, item.Metadata.Adapt<IviMetadata>(), item.ItemState,
+                     DateTimeOffset.FromUnixTimeSeconds (item.CreatedTimestamp), DateTimeOffset.FromUnixTimeSeconds (item.UpdatedTimestamp))).Compile(); 
+            
             TypeAdapterConfig<IviMetadata, Metadata>.NewConfig()
                 .Map(dest => dest.Name, src => src.Name)
                 .Map(dest => dest.Description, src => src.Description)
