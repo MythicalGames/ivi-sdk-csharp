@@ -1,5 +1,4 @@
-﻿using System.Xml.Serialization;
-using Google.Protobuf.WellKnownTypes;
+﻿using Google.Protobuf.WellKnownTypes;
 using Ivi.Proto.Api.Itemtype;
 using Ivi.Proto.Common;
 using Mapster;
@@ -26,7 +25,7 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                      src.Metadata.Adapt(dest.Metadata);
                 })
                 .Compile(); 
-
+            
             TypeAdapterConfig<IviMetadata, Metadata>.NewConfig()
                 .Map(dest => dest.Name, src => src.Name)
                 .Map(dest => dest.Description, src => src.Description)
