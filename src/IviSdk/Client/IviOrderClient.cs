@@ -97,7 +97,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
                         {
                             if (_orderExecutor != null)
                             {
-                                await _orderExecutor!.UpdateOrder(response.OrderId, response.OrderState);
+                                await _orderExecutor!.UpdateOrderAsync(response.OrderId, response.OrderState);
                             }
                             await _streamClient.OrderStatusConfirmationAsync(new OrderStatusConfirmRequest 
                             { 
@@ -110,7 +110,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, $"Error executing or confirming {nameof(_orderExecutor.UpdateOrder)}");
+                            _logger.LogError(ex, $"Error executing or confirming UpdateOrder");
                         }
                     }
                     _logger.LogInformation("Order update stream closed");
