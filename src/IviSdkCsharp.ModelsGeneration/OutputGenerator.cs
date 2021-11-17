@@ -59,14 +59,8 @@ public partial class {modelName}
             result.Append("{");
             foreach (var prop in modelProperties.Where(x => x.Value.ForPropertyType.IsReferenceType))
             {
-                if (prop.Value.ForPropertyType.SpecialType == SpecialType.System_String)
-                {
-                    AddPropertyInitialize(prop.Key, "string.Empty");
-                }
-                else
-                {
-                    AddPropertyInitialize(prop.Key, $"new {prop.Value.Value}()");
-                }
+                var propertyIsString = prop.Value.ForPropertyType.SpecialType == SpecialType.System_String;
+                AddPropertyInitialize(prop.Key, propertyIsString ? "string.Empty" : "new()");
             }
             result.AppendLine().Append("}");
             return result.ToString();
