@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -19,7 +20,7 @@ namespace IviSdkCsharp.ModelsGeneration
                 var ordered = OrderTypes(context, types);
                 foreach (var targetType in ordered)
                 {
-                    GenerateModel(context, model, targetType);
+                    GenerateModel(context, targetType);
                 }
             }
             else
@@ -57,15 +58,20 @@ namespace IviSdkCsharp.ModelsGeneration
             return result.ToArray();
         }
 
-        private static IPropertySymbol[] GetAllProperties(INamedTypeSymbol type)
-            => type.GetMembers().OfType<IPropertySymbol>().Where(x => !PropTypesToSkip.Contains(x.Type.Name)).ToArray();
+        internal static IPropertySymbol[] GetAllProperties(INamedTypeSymbol type) =>
+            type.GetMembers()
+                .OfType<IPropertySymbol>()
+                .Where(x => 
+                    !PropTypesToSkip.Contains(x.Type.Name)
+                    && !x.GetAttributes().Any(attr => attr.AttributeClass?.Name == nameof(ObsoleteAttribute)))
+                .ToArray();
 
         internal static bool IsGrpcGeneratedNamespace(INamespaceSymbol? ns)
             => ns?.ToDisplayString().StartsWith("Ivi.Proto") is true;
 
         internal const string ModelPrefix = "Ivi";
 
-        private void GenerateModel(GeneratorExecutionContext context, SemanticModel semanticModel,
+        private void GenerateModel(GeneratorExecutionContext context,
             INamedTypeSymbol targetType)
         {
             var propName = targetType.Name;
@@ -76,10 +82,9 @@ namespace IviSdkCsharp.ModelsGeneration
                 "using System.Collections.Generic;"
             };
 
-            var outputGenerator = new OutputGenerator(semanticModel);
             string source = targetType.TypeKind == TypeKind.Enum 
-                ? outputGenerator.GenerateEnum(targetType, namespaces, modelName) 
-                : outputGenerator.GenerateClass(targetType, namespaces, modelName);
+                ? OutputGenerator.GenerateEnum(targetType, namespaces, modelName) 
+                : OutputGenerator.GenerateClass(targetType, namespaces, modelName);
             context.AddSource(modelName + ".cs", source);
             Log(context, "Generating code for " + targetType.Name);
         }
