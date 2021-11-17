@@ -5,6 +5,6 @@ namespace IviSdkCsharp.Client.Executor
 {
     public interface IVIOrderExecutor
     {
-        Task UpdateOrder(string orderId, OrderState orderState);
+        Task UpdateOrderAsync(string orderId, OrderState orderState);
     }
 }

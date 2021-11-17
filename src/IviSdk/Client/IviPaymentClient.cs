@@ -23,7 +23,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
 
         private PaymentService.PaymentServiceClient Client => _client ??= new(Channel);
 
-        public Task<string> GetToken(PaymentProviderId paymentProviderId, string playerId)
+        public Task<string> GetTokenAsync(PaymentProviderId paymentProviderId, string playerId)
         {
             switch (paymentProviderId)
             {

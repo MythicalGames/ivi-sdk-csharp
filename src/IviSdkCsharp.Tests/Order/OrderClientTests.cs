@@ -1,5 +1,4 @@
 ﻿using Games.Mythical.Ivi.Sdk.Client;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Ivi.Proto.Api.Order;
@@ -12,7 +11,6 @@ using Mythical.Game.IviSdkCSharp.Model;
 using Shouldly;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
