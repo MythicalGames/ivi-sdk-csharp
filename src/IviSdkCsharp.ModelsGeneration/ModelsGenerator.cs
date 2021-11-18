@@ -74,8 +74,7 @@ namespace IviSdkCsharp.ModelsGeneration
         private void GenerateModel(GeneratorExecutionContext context,
             INamedTypeSymbol targetType)
         {
-            var propName = targetType.Name;
-            var modelName = ModelPrefix + propName;
+            var modelName = GetModelName(targetType);
             HashSet<string> namespaces = new()
             {
                 "using System;",
@@ -89,10 +88,11 @@ namespace IviSdkCsharp.ModelsGeneration
             Log(context, "Generating code for " + targetType.Name);
         }
 
-        public void Initialize(GeneratorInitializationContext context)
-        {
-            context.RegisterForSyntaxNotifications(() => new GrpcTypesFinder());
-        }
+        public void Initialize(GeneratorInitializationContext context) 
+            => context.RegisterForSyntaxNotifications(() => new GrpcTypesFinder());
+
+        private string GetModelName(INamedTypeSymbol type) 
+            => ModelPrefix + (type.Name.StartsWith("ivi", StringComparison.OrdinalIgnoreCase) ? type.Name.Substring(3) : type.Name);
 
         private static void Log(GeneratorExecutionContext context, string message, string title = "test")
         {
@@ -104,7 +104,7 @@ namespace IviSdkCsharp.ModelsGeneration
                 ));
         }
 
-        internal static readonly HashSet<string> PropTypesToSkip = new HashSet<string>
+        internal static readonly HashSet<string> PropTypesToSkip = new()
         {
             "MessageParser",
             "MessageDescriptor"
