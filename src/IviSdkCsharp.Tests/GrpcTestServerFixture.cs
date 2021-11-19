@@ -2,6 +2,7 @@
 using System.Net.Http;
 using IviSdkCsharp.Tests.Host;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Mythical.Game.IviSdkCSharp.Config;
 using Xunit;
 
 namespace IviSdkCsharp.Tests
@@ -16,9 +17,16 @@ namespace IviSdkCsharp.Tests
             {
                 BaseAddress = new Uri("https://localhost")
             });
+            
         }
 
         public HttpClient Client { get;  }
+
+        public static IviConfiguration Config { get; } = new()
+        {
+            ApiKey = TestWebApplicationFactory.ApiKey,
+            EnvironmentId = "test environment id"
+        };
     }
     
     [CollectionDefinition(GrpcTestServerFixture.GrpcTestServerFixtureCollection)]

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Games.Mythical.Ivi.Sdk.Client;
 using Ivi.Proto.Common.Itemtype;
 using Microsoft.Extensions.Logging.Abstractions;
+using Mythical.Game.IviSdkCSharp.Config;
 using Mythical.Game.IviSdkCSharp.Exception;
 using Mythical.Game.IviSdkCSharp.Model;
 using Shouldly;
@@ -22,7 +23,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task GetItemTypeAsync_ValidRequest_ReturnsRequestedItemType()
         {
-            var itemTypeClient = new IviItemTypeClient(NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
+            var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
             
             var result = await itemTypeClient.GetItemTypesAsync(new List<string> { GameItemTypeIdExisting });
             
@@ -33,7 +34,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task GetItemTypeAsync_NotFound_ReturnsNull()
         {
-            var itemTypeClient = new IviItemTypeClient(NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
+            var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
             
             var result = await itemTypeClient.GetItemTypeAsync(GameItemTypeIdNotFound);
             
@@ -43,7 +44,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public void GetItemTypeAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var itemTypeClient = new IviItemTypeClient(NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
+            var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
             
             Should.Throw<IVIException>(async () => await itemTypeClient.GetItemTypeAsync(GameItemTypeIdThrow));
         }
@@ -51,7 +52,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task GetItemTypesAsync_ValidRequest_ReturnsRequestedItemTypes()
         {
-            var itemTypeClient = new IviItemTypeClient(NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
+            var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
             
             var result = await itemTypeClient.GetItemTypesAsync();
 
@@ -61,7 +62,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public void GetItemTypesAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var itemTypeClient = new IviItemTypeClient(null, _fixture.Client);
+            var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client);
 
             Should.Throw<IVIException>(async () => await itemTypeClient.GetItemTypesAsync(new List<string>(){GameItemTypeIdThrow}));
         }
@@ -70,7 +71,7 @@ namespace IviSdkCsharp.Tests
         public async Task CreateItemTypeAsync_ValidInput_CreatesItemType()
         {
             var executor = new MockItemTypeExecutor();
-            var itemTypeClient = new IviItemTypeClient(null, _fixture.Client)
+            var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client)
             {
                 UpdateSubscription = executor
             };
@@ -91,7 +92,7 @@ namespace IviSdkCsharp.Tests
         public async Task FreezeItemTypeAsync_ValidInput_FreezesItemType()
         {
             var executor = new MockItemTypeExecutor();
-            var itemTypeClient = new IviItemTypeClient(null, _fixture.Client)
+            var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client)
             {
                 UpdateSubscription = executor
             };
@@ -108,7 +109,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task UpdateItemTypeMetadataAsync_ValidInput_FreezesItemType()
         {
-            var itemTypeClient = new IviItemTypeClient(null, _fixture.Client);
+            var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client);
             await itemTypeClient.UpdateItemTypeMetadataAsync(GameItemTypeIdExisting, null);
         }
     }

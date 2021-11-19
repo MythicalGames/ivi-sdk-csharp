@@ -16,6 +16,7 @@ using IviSdkCsharp.Client.Executor;
 using Mapster;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Mythical.Game.IviSdkCSharp.Config;
 using Mythical.Game.IviSdkCSharp.Exception;
 using Mythical.Game.IviSdkCSharp.Model;
 
@@ -28,10 +29,11 @@ namespace Games.Mythical.Ivi.Sdk.Client
         private PlayerService.PlayerServiceClient? _client;
         private PlayerStream.PlayerStreamClient? _streamClient;
 
-        public IviPlayerClient(ILogger<IviPlayerClient>? logger) => _logger = logger ?? new NullLogger<IviPlayerClient>();
+        public IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger) : base(config) 
+            => _logger = logger ?? new NullLogger<IviPlayerClient>();
 
-        internal IviPlayerClient(ILogger<IviPlayerClient>? logger, HttpClient httpClient)
-            : base(httpClient.BaseAddress!, new GrpcChannelOptions{ HttpClient = httpClient }) =>
+        internal IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger, HttpClient httpClient)
+            : base(config, httpClient.BaseAddress!, new GrpcChannelOptions{ HttpClient = httpClient }) =>
             _logger = logger ?? new NullLogger<IviPlayerClient>();
 
         public IVIPlayerExecutor UpdateSubscription

@@ -1,15 +1,30 @@
-﻿namespace Mythical.Game.IviSdkCSharp.Config
+﻿using Mythical.Game.IviSdkCSharp.Exception;
+
+namespace Mythical.Game.IviSdkCSharp.Config
 {
     public class IviConfiguration
     {
-        public static string? EnvironmentId { get; set; }
+        public string? EnvironmentId { get; set; }
         
-        public static string? ApiKey { get; set; }
+        public string? ApiKey { get; set; }
 
-        public static string Host { get; set; } = "sdk-api.iviengine.com";
+        public string Host { get; set; } = "sdk-api.iviengine.com";
         
-        public static int Port { get; set; } = 443;
+        public int Port { get; set; } = 443;
         
-        public static int KeepAlive { get; set; } = 30;
+        public int KeepAlive { get; set; } = 30;
+
+
+        internal void Validate()
+        {
+            EnsureStringValue(EnvironmentId, "Environment Id not set!", IVIErrorCode.ENVIRONMENT_ID_NOT_SET);
+            EnsureStringValue(ApiKey, "API Key not set!", IVIErrorCode.APIKEY_NOT_SET);
+            EnsureStringValue(Host, "Host not set!", IVIErrorCode.HOST_NOT_SET);
+
+            static void EnsureStringValue(string? value, string errorMessage, IVIErrorCode errorCode)
+            {
+                if (string.IsNullOrWhiteSpace(value)) throw new IVIException(errorMessage, errorCode);
+            }
+        }
     }
 }

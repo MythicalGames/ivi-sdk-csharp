@@ -39,7 +39,7 @@ namespace IviSdkCsharp.Tests.Item.Services
         
         private static bool IsDefaultRequest(GetItemsRequest request)
         {
-            if (request.EnvironmentId != IviConfiguration.EnvironmentId) return false;
+            if (request.EnvironmentId != GrpcTestServerFixture.Config.EnvironmentId) return false;
             var createdTimestampDiff = (long) request.CreatedTimestamp -
                                        GetItemsExpectedRequestData.createdTimestamp.ToUnixTimeSeconds();
             if (Math.Abs(createdTimestampDiff) > 1) return false;

@@ -16,7 +16,15 @@ namespace ClientSample
             var services = new ServiceCollection();
             services.AddLogging(x => x.AddSerilog());
             _services = services.BuildServiceProvider();
+            IviConfig = new IviConfiguration
+            {
+                EnvironmentId = Config.GetSection("IviConfiguration:EnvironmentId").Value,
+                ApiKey = Config.GetSection("IviConfiguration:ApiKey").Value,
+                Host = Config.GetSection("IviConfiguration:Host").Value
+            };
         }
+
+        public IviConfiguration IviConfig { get; }
 
         public IConfiguration Config { get; } = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: true)
@@ -24,12 +32,5 @@ namespace ClientSample
             .Build();
 
         public ILogger<T> CreateLogger<T>() => _services!.GetRequiredService<ILogger<T>>();
-
-        public void SetIviConfiguration()
-        {
-            IviConfiguration.EnvironmentId = Config.GetSection("IviConfiguration:EnvironmentId").Value;
-            IviConfiguration.ApiKey = Config.GetSection("IviConfiguration:ApiKey").Value;
-            IviConfiguration.Host = Config.GetSection("IviConfiguration:Host").Value;
-        }
     }
 }
