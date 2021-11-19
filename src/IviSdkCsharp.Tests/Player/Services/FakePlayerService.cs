@@ -30,7 +30,7 @@ namespace IviSdkCsharp.Tests.Player.Services
 
         public override Task<LinkPlayerAsyncResponse> LinkPlayer(LinkPlayerRequest request, ServerCallContext context)
         {
-            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.EnvironmentId.ShouldBe(GrpcTestServerFixture.Config.EnvironmentId);
             if (request.PlayerId == PlayerIdThrow) throw new System.Exception();
             return Task.FromResult(new LinkPlayerAsyncResponse
             {
