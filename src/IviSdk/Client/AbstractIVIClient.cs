@@ -8,7 +8,6 @@ using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mythical.Game.IviSdkCSharp.Config;
-using Mythical.Game.IviSdkCSharp.Exception;
 using Mythical.Game.IviSdkCSharp.Mapper;
 
 [assembly:InternalsVisibleTo("IviSdkCsharp.Tests")]
@@ -29,23 +28,17 @@ namespace Games.Mythical.Ivi.Sdk.Client
 
         static AbstractIVIClient() => MappersConfig.RegisterMappings();
 
-        protected AbstractIVIClient(Uri? address = default, GrpcChannelOptions? options = default, ILogger? logger = null)
+        protected AbstractIVIClient(IviConfiguration config, Uri? address = default, GrpcChannelOptions? options = default, ILogger? logger = null)
         {
-            EnsureStringValue(IviConfiguration.EnvironmentId, "Environment Id not set!", IVIErrorCode.ENVIRONMENT_ID_NOT_SET);
-            EnsureStringValue(IviConfiguration.ApiKey, "API Key not set!", IVIErrorCode.APIKEY_NOT_SET);
-            EnsureStringValue(IviConfiguration.Host, "Host not set!", IVIErrorCode.HOST_NOT_SET);
-            
-            EnvironmentId = IviConfiguration.EnvironmentId!;
-            ApiKey = IviConfiguration.ApiKey!;
-            Host = IviConfiguration.Host;
-            Port = IviConfiguration.Port;
-            KeepAlive = IviConfiguration.KeepAlive;
-            Channel = ConstructChannel(address ?? new Uri($"{Host}:{Port}"), options);
+            config.Validate();
+            EnvironmentId = config.EnvironmentId!;
+            ApiKey = config.ApiKey!;
+            Host = config.Host;
+            Port = config.Port;
+            KeepAlive = config.KeepAlive;
+            Channel = ConstructChannel(address ?? new Uri($"{Host}:{Port}"), options); 
             _logger = NullLogger.Instance;
-            static void EnsureStringValue(string? value, string errorMessage, IVIErrorCode errorCode)
-            {
-                if (string.IsNullOrWhiteSpace(value)) throw new IVIException(errorMessage, errorCode);
-            }
+
         }
 
         private GrpcChannel ConstructChannel(Uri address, GrpcChannelOptions? options = default)

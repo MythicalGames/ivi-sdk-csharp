@@ -49,7 +49,7 @@ namespace IviSdkCsharp.Tests.ItemType.Services
 
         public override Task<CreateItemAsyncResponse> CreateItemType(CreateItemTypeRequest request, ServerCallContext context)
         {
-            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.EnvironmentId.ShouldBe(GrpcTestServerFixture.Config.EnvironmentId);
 
             return request.GameItemTypeId switch
             {
@@ -65,7 +65,7 @@ namespace IviSdkCsharp.Tests.ItemType.Services
 
         public override Task<FreezeItemTypeAsyncResponse> FreezeItemType(FreezeItemTypeRequest request, ServerCallContext context)
         {
-            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.EnvironmentId.ShouldBe(GrpcTestServerFixture.Config.EnvironmentId);
             return request.GameItemTypeId switch
             {
                 GameItemTypeIdFreeze => Task.FromResult(new FreezeItemTypeAsyncResponse
@@ -79,7 +79,7 @@ namespace IviSdkCsharp.Tests.ItemType.Services
 
         public override Task<Empty> UpdateItemTypeMetadata(UpdateItemTypeMetadataPayload request, ServerCallContext context)
         {
-            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.EnvironmentId.ShouldBe(GrpcTestServerFixture.Config.EnvironmentId);
             request.GameItemTypeId.ShouldBe(GameItemTypeIdExisting);
             return Task.FromResult(new Empty());
         }

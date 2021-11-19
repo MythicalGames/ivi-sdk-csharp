@@ -15,6 +15,7 @@ using IviSdkCsharp.Client.Executor;
 using Mapster;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Mythical.Game.IviSdkCSharp.Config;
 using Mythical.Game.IviSdkCSharp.Exception;
 using Mythical.Game.IviSdkCSharp.Model;
 using Metadata = Ivi.Proto.Common.Metadata;
@@ -27,11 +28,11 @@ namespace Games.Mythical.Ivi.Sdk.Client
         private ItemTypeService.ItemTypeServiceClient? _client;
         private ItemTypeStatusStream.ItemTypeStatusStreamClient? _streamClient;
 
-        public IviItemTypeClient(ILogger<IviItemTypeClient>? logger) 
-            : base(logger: logger) { }
+        public IviItemTypeClient(IviConfiguration config, ILogger<IviItemTypeClient>? logger) 
+            : base(config, logger: logger) { }
 
-        internal IviItemTypeClient(ILogger<IviItemTypeClient>? logger, HttpClient httpClient) 
-            : base(httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
+        internal IviItemTypeClient(IviConfiguration config, ILogger<IviItemTypeClient>? logger, HttpClient httpClient)
+            : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
 
         private ItemTypeService.ItemTypeServiceClient Client => _client ??= new ItemTypeService.ItemTypeServiceClient(Channel);
 

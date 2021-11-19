@@ -16,6 +16,7 @@ using IviSdkCsharp.Client.Executor;
 using Mapster;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Mythical.Game.IviSdkCSharp.Config;
 using Mythical.Game.IviSdkCSharp.Exception;
 using Mythical.Game.IviSdkCSharp.Model;
 using Metadata = Ivi.Proto.Common.Metadata;
@@ -28,10 +29,10 @@ namespace Games.Mythical.Ivi.Sdk.Client
         private ItemService.ItemServiceClient? _client;
         private ItemStream.ItemStreamClient? _streamClient;
 
-        public IviItemClient(ILogger<IviItemClient>? logger) : base(logger: logger) { }
+        public IviItemClient(IviConfiguration config, ILogger<IviItemClient>? logger) : base(config, logger) { };
 
-        internal IviItemClient(ILogger<IviItemClient>? logger, HttpClient httpClient)
-            : base(httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
+        internal IviItemClient(IviConfiguration config, ILogger<IviItemClient>? logger, HttpClient httpClient)
+            : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
         public IVIItemExecutor UpdateSubscription
         {
             init

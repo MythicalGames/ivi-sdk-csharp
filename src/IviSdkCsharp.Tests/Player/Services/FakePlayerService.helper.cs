@@ -19,7 +19,7 @@ namespace IviSdkCsharp.Tests.Player.Services
         
         private static bool IsDefaultRequest(GetPlayersRequest request)
         {
-            if (request.EnvironmentId != IviConfiguration.EnvironmentId) return false;
+            if (request.EnvironmentId != GrpcTestServerFixture.Config.EnvironmentId) return false;
             var createdTimestampDiff = (long) request.CreatedTimestamp -
                                        GetPlayersExpectedRequestData.createdTimestamp.ToUnixTimeSeconds();
             if (Math.Abs(createdTimestampDiff) > 1) return false;

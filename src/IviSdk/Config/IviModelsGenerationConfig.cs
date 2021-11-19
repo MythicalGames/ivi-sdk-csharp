@@ -1,5 +1,7 @@
 ﻿using Ivi.Proto.Api.Item;
 using Ivi.Proto.Api.Itemtype;
+using Ivi.Proto.Api.Player;
+using Ivi.Proto.Common.Sort;
 
 #nullable disable
 
@@ -10,5 +12,7 @@ namespace Mythical.Game.IviSdkCSharp.Config
     {
         private Item Item { get; set; }
         private ItemType ItemType { get; set; }
+        private IVIPlayer Player { get; set; }
+        private SortOrder SortOrder { get; set; }
     }
 }

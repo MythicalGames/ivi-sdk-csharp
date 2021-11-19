@@ -1,28 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using StringBuilder = System.Text.StringBuilder;
 
 namespace IviSdkCsharp.ModelsGeneration
 {
-    internal class OutputGenerator
+    internal static class OutputGenerator
     {
-        private readonly SemanticModel _model;
-        private const string Indent = "\t";
-        private const string DoubleIndent = "\t\t";
-        private const string TrippleIndent = "\t\t\t";
         private const string MythicalNamespace = "Mythical.Game.IviSdkCSharp.Model";
 
-        public OutputGenerator(SemanticModel model) => _model = model;
-
-        internal string GenerateClass(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
+        internal static string GenerateClass(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
         {
-            
-            var allModelProps = targetType.GetMembers()
-                .OfType<IPropertySymbol>().Where(x => !ModelsGenerator.PropTypesToSkip.Contains(x.Type.Name)).ToArray();
-
+            var allModelProps = ModelsGenerator.GetAllProperties(targetType).ToArray();
 
             var props = new StringBuilder();
             Dictionary<string, PropertyType> modelProperties = new(allModelProps.Length);
@@ -39,66 +31,111 @@ namespace IviSdkCsharp.ModelsGeneration
                 var propertyType = GetPropertyType(isGoogle, isGrpcGenerated, modelProp);
                 var name = modelProp.Name;
                 modelProperties[name] = propertyType;
-                props.Append(DoubleIndent).Append("public ").Append(propertyType.Value).Append(" ").Append(name)
+                props.Append("public ").Append(propertyType.Value).Append(" ").Append(name)
                     .Append(" { get; set; }")
                     .AppendLine();
             }
 
-            string constructors = GenerateConsructors(modelName, modelProperties);
+            var constructors = GenerateConsructors(modelName, modelProperties);
+            var equalityMembers = GenerateEqualityMembers(modelName, modelProperties.Keys);
+            var getHasCode = GenerateGetHashCode(modelProperties.Keys);
 
-            return $@"{string.Join(Environment.NewLine, namespaces)}
+            return Beautify($@"{string.Join(Environment.NewLine, namespaces)}
 
 namespace {MythicalNamespace}
 {{    
-{Indent}public partial class {modelName}
-{Indent}{{
+public partial class {modelName}
+{{
 {constructors}
 {props}
-{Indent}}}
+{equalityMembers}
+{getHasCode}
 }}
-";
+}}
+");
         }
 
-        private string GenerateConsructors(string modelName, Dictionary<string, PropertyType> modelProperties)
+        private static string GenerateConsructors(string modelName, Dictionary<string, PropertyType> modelProperties)
         {
-            StringBuilder result = new(DoubleIndent);
+            StringBuilder result = new();
             result.Append("public ").Append(modelName).Append("()").AppendLine();
-            result.Append(DoubleIndent).Append("{");
+            result.Append("{");
             foreach (var prop in modelProperties.Where(x => x.Value.ForPropertyType.IsReferenceType))
             {
-                if (prop.Value.ForPropertyType.SpecialType == SpecialType.System_String)
-                {
-                    AddPropertyInitialize(prop.Key, "string.Empty");
-                }
-                else
-                {
-                    AddPropertyInitialize(prop.Key, $"new {prop.Value.Value}()");
-                }
+                var propertyIsString = prop.Value.ForPropertyType.SpecialType == SpecialType.System_String;
+                AddPropertyInitialize(prop.Key, propertyIsString ? "string.Empty" : "new()");
             }
-            result.AppendLine().Append(DoubleIndent).Append("}");
+            result.AppendLine().Append("}");
             return result.ToString();
 
             void AddPropertyInitialize(string name, string initValue)
             {
                 result.AppendLine();
-                result.Append(TrippleIndent).Append(name);
+                result.Append(name);
                 result.Append(" = ");
                 result.Append(initValue).Append(";");
             }
         }
 
-        internal string GenerateEnum(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
+        private static string GenerateEqualityMembers(string modelName, IEnumerable<string> properties)
+        {
+            var result = new StringBuilder();
+            AppendTypedEquals(modelName, properties, result);
+
+            result.AppendLine("public override bool Equals(object? obj)");
+            result.AppendLine("{");
+            result.AppendLine("if (ReferenceEquals(null, obj)) return false;");
+            result.AppendLine("if (ReferenceEquals(this, obj)) return true;");
+            result.AppendLine("if (obj.GetType() != this.GetType()) return false;");
+            result.Append("return Equals((").Append(modelName).AppendLine(") obj);");
+            result.AppendLine("}");
+
+            return result.ToString();
+
+            static void AppendTypedEquals(string name, IEnumerable<string> properties, StringBuilder output)
+            {
+                output .Append("protected bool Equals(").Append(name).AppendLine(" other)");
+                output.AppendLine("{");
+                output.Append(" return ");
+                var isFirstProp = true;
+                foreach (var prop in properties)
+                {
+                    if (!isFirstProp) output.Append("&& ");
+                    output.Append(prop).Append(" == other.").Append(prop).Append(" ");
+                    isFirstProp = false;
+                }
+                output.AppendLine(";");
+                output.AppendLine("}").AppendLine();
+            }
+        }
+
+        private static string GenerateGetHashCode(IEnumerable<string> properties)
+        {
+            var result = new StringBuilder("public override int GetHashCode()");
+            result.AppendLine().AppendLine("{");
+            result.AppendLine("var hashCode = new HashCode();");
+            foreach (var prop in properties)
+            {
+                result.Append("hashCode.Add(").Append(prop).AppendLine(");");
+            }
+            result.AppendLine("return hashCode.ToHashCode();");
+            result.Append("}");
+
+            return result.ToString();
+        }
+
+        internal static string GenerateEnum(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
         {
             var enumSyntax = targetType.DeclaringSyntaxReferences[0].GetSyntax();
             var enumDefinition = Regex.Replace(enumSyntax.ToString(), @"\[.+]\s+", "", RegexOptions.Multiline)
                 .Replace(targetType.Name, modelName);
-            return $@"{string.Join(Environment.NewLine, namespaces)}
+            return Beautify($@"{string.Join(Environment.NewLine, namespaces)}
 
 namespace {MythicalNamespace}
 {{    
 {enumDefinition}
 }}
-";
+");
         }
 
         private static PropertyType GetPropertyType(bool isGoogle, bool isGrpcGenerated, IPropertySymbol modelProp)
@@ -141,6 +178,8 @@ namespace {MythicalNamespace}
             SpecialType.System_Boolean => "bool",
             _ => type.Name
         };
+
+        private static string Beautify(string code) => SyntaxFactory.ParseSyntaxTree(code).GetRoot().NormalizeWhitespace()?.ToString() ?? code;
 
         private class PropertyType
         {

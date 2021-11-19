@@ -14,7 +14,6 @@ namespace ClientSample
         static async Task Main()
         {
             Setup setup = new ();
-            setup.SetIviConfiguration();
             MappersConfig.RegisterMappings();
 
             await PlayerClient_Usage(setup);
@@ -27,7 +26,7 @@ namespace ClientSample
         {
             var logger = setup.CreateLogger<IviItemClient>();
 
-            var itemClient = new IviItemClient(logger)
+            var itemClient = new IviItemClient(setup.IviConfig, logger)
             {
                 UpdateSubscription = new LoggingItemUpdateSubscription(logger)
             };
@@ -40,11 +39,11 @@ namespace ClientSample
         {
             var logger = setup.CreateLogger<IviPlayerClient>();
 
-            var playerClient = new IviPlayerClient(logger)
+            var playerClient = new IviPlayerClient(setup.IviConfig, logger)
             {
                 UpdateSubscription = new LoggingPlayerUpdateSubscription(logger)
             };
-            var players = await playerClient.GetPlayersAsync(DateTimeOffset.MinValue, 3, SortOrder.Desc);
+            var players = await playerClient.GetPlayersAsync(DateTimeOffset.MinValue, 3, IviSortOrder.Desc);
             logger.LogInformation("GetPlayersAsync: {@Players}", players);
         }
 
@@ -52,7 +51,7 @@ namespace ClientSample
         {
             var logger = setup.CreateLogger<IviItemTypeClient>();
 
-            var itemTypeClient = new IviItemTypeClient(logger)
+            var itemTypeClient = new IviItemTypeClient(setup.IviConfig, logger)
             {
                 UpdateSubscription = new LoggingItemTypeUpdateSubscription(logger)
             };

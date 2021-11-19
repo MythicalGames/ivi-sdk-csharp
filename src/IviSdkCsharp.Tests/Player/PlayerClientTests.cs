@@ -1,9 +1,12 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Games.Mythical.Ivi.Sdk.Client;
 using Ivi.Proto.Common.Player;
-using Ivi.Proto.Common.Sort;
+using Mapster;
 using Microsoft.Extensions.Logging.Abstractions;
+using Mythical.Game.IviSdkCSharp.Config;
 using Mythical.Game.IviSdkCSharp.Exception;
+using Mythical.Game.IviSdkCSharp.Model;
 using Shouldly;
 using Xunit;
 using static IviSdkCsharp.Tests.Player.Services.FakePlayerService;
@@ -21,7 +24,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task GetPlayerAsync_ValidRequest_ReturnsRequestedPlayer()
         {
-            var playerClient = new IviPlayerClient(NullLogger<IviPlayerClient>.Instance, _fixture.Client);
+            var playerClient = new IviPlayerClient(GrpcTestServerFixture.Config, NullLogger<IviPlayerClient>.Instance, _fixture.Client);
             
             var result = await playerClient.GetPlayerAsync(PlayerIdExisting);
             
@@ -33,7 +36,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task GetPlayerAsync_NotFound_ReturnsNull()
         {
-            var playerClient = new IviPlayerClient(NullLogger<IviPlayerClient>.Instance, _fixture.Client);
+            var playerClient = new IviPlayerClient(GrpcTestServerFixture.Config, NullLogger<IviPlayerClient>.Instance, _fixture.Client);
             
             var result = await playerClient.GetPlayerAsync(PlayerIdNotFound);
             
@@ -43,7 +46,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public void GetPlayerAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var playerClient = new IviPlayerClient(NullLogger<IviPlayerClient>.Instance, _fixture.Client);
+            var playerClient = new IviPlayerClient(GrpcTestServerFixture.Config, NullLogger<IviPlayerClient>.Instance, _fixture.Client);
             
             Should.Throw<IVIException>(async () => await playerClient.GetPlayerAsync(PlayerIdThrow));
         }
@@ -51,22 +54,23 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public async Task GetPlayersAsync_ValidRequest_ReturnsRequestedPlayers()
         {
-            var playerClient = new IviPlayerClient(NullLogger<IviPlayerClient>.Instance, _fixture.Client);
+            var playerClient = new IviPlayerClient(GrpcTestServerFixture.Config, NullLogger<IviPlayerClient>.Instance, _fixture.Client);
             var (offset, pageSize, sortOrder) = GetPlayersExpectedRequestData;
             
-            var result = await playerClient.GetPlayersAsync(offset, pageSize, sortOrder);
+            var result = await playerClient.GetPlayersAsync(offset, pageSize, sortOrder.Adapt<IviSortOrder>());
 
-            result!.ShouldBe(DefaultPlayers.IviPlayers);
+            var expected = DefaultPlayers.IviPlayers.Select(x => x.Adapt<IviPlayer>()).ToArray();
+            result!.ShouldBe(expected);
         }
         
         [Fact]
         public void GetPlayersAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var playerClient = new IviPlayerClient(null, _fixture.Client);
+            var playerClient = new IviPlayerClient(GrpcTestServerFixture.Config, null, _fixture.Client);
             var (offset, pageSize, sortOrder) = GetPlayersExpectedRequestData;
 
             Should.Throw<IVIException>(async () =>
-                await playerClient.GetPlayersAsync(offset.AddDays(1), pageSize + 1, SortOrder.Asc));
+                await playerClient.GetPlayersAsync(offset.AddDays(1), pageSize + 1, IviSortOrder.Asc));
         }
 
         [Theory]
@@ -78,7 +82,7 @@ namespace IviSdkCsharp.Tests
         public async Task LinkPlayerAsync_ValidInput_LinksAndUpdatesPlayer(string passedIpAddress, string expectedIpAddress)
         {
             var executor = new MockPlayerExecutor();
-            var playerClient = new IviPlayerClient(null, _fixture.Client)
+            var playerClient = new IviPlayerClient(GrpcTestServerFixture.Config, null, _fixture.Client)
             {
                 UpdateSubscription = executor
             };
@@ -92,7 +96,7 @@ namespace IviSdkCsharp.Tests
         [Fact]
         public void LinkPlayerAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var playerClient = new IviPlayerClient(null, _fixture.Client);
+            var playerClient = new IviPlayerClient(GrpcTestServerFixture.Config, null, _fixture.Client);
 
             Should.Throw<IVIException>(async () =>
                 await playerClient.LinkPlayerAsync(PlayerIdThrow, "test@example.com", "Ninja", "192.168.1.1"));

@@ -14,9 +14,12 @@ using Ivi.Rpc.Api.Player;
 using Ivi.Rpc.Streams;
 using Ivi.Rpc.Streams.Player;
 using IviSdkCsharp.Client.Executor;
+using Mapster;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Mythical.Game.IviSdkCSharp.Config;
 using Mythical.Game.IviSdkCSharp.Exception;
+using Mythical.Game.IviSdkCSharp.Model;
 
 namespace Games.Mythical.Ivi.Sdk.Client
 {
@@ -26,11 +29,11 @@ namespace Games.Mythical.Ivi.Sdk.Client
         private PlayerService.PlayerServiceClient? _client;
         private PlayerStream.PlayerStreamClient? _streamClient;
 
-        public IviPlayerClient(ILogger<IviPlayerClient>? logger) 
-            : base(logger: logger) { }
+        public IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger) 
+            : base(config, logger: logger) { };
 
-        internal IviPlayerClient(ILogger<IviPlayerClient>? logger, HttpClient httpClient)
-            : base(httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
+        internal IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger, HttpClient httpClient)
+            : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger: logger) { }
 
         public IVIPlayerExecutor UpdateSubscription
         {
@@ -131,17 +134,17 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
         }
         
-        public async Task<IVIPlayer?> GetPlayerAsync(string playerId, CancellationToken cancellationToken = default)
+        public async Task<IviPlayer?> GetPlayerAsync(string playerId, CancellationToken cancellationToken = default)
         {
             _logger.LogDebug("PlayerClient.getPlayer called from player: {playerId}", playerId);
-
             try
             {
-                return await Client.GetPlayerAsync(new GetPlayerRequest
+                var result =  await Client.GetPlayerAsync(new GetPlayerRequest
                 {
                     EnvironmentId = EnvironmentId,
                     PlayerId = playerId
                 }, cancellationToken: cancellationToken);
+                return result.Adapt<IviPlayer>();
             }
             catch (RpcException ex)
             {
@@ -154,7 +157,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
             }
         }
 
-        public async Task<IList<IVIPlayer>?> GetPlayersAsync(DateTimeOffset createdTimestamp, int pageSize, SortOrder sortOrder, CancellationToken cancellationToken = default)
+        public async Task<IList<IviPlayer>?> GetPlayersAsync(DateTimeOffset createdTimestamp, int pageSize, IviSortOrder sortOrder, CancellationToken cancellationToken = default)
         {
             _logger.LogDebug("PlayerClient.getPlayers called with params: createdTimestamp {}, pageSize {}, sortOrder {}", createdTimestamp, pageSize, sortOrder);
             try
@@ -163,11 +166,11 @@ namespace Games.Mythical.Ivi.Sdk.Client
                 {
                     EnvironmentId = EnvironmentId,
                     PageSize = pageSize,
-                    SortOrder = sortOrder,
+                    SortOrder = sortOrder.Adapt<SortOrder>(),
                     CreatedTimestamp = (ulong) createdTimestamp.ToUnixTimeSeconds()
                 };
                 var result = await Client.GetPlayersAsync(request, cancellationToken: cancellationToken);
-                return result.IviPlayers;
+                return result.IviPlayers.Select(x => x.Adapt<IviPlayer>()).ToList();
             }
             catch (RpcException e)
             {

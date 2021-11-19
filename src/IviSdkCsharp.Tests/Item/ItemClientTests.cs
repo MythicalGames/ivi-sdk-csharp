@@ -7,6 +7,7 @@ using Ivi.Proto.Common.Item;
 using Ivi.Proto.Common.Sort;
 using Mapster;
 using Microsoft.Extensions.Logging.Abstractions;
+using Mythical.Game.IviSdkCSharp.Config;
 using Mythical.Game.IviSdkCSharp.Exception;
 using Mythical.Game.IviSdkCSharp.Model;
 using Shouldly;
@@ -25,7 +26,7 @@ namespace IviSdkCsharp.Tests.Item
         [Fact]
         public async Task GetItemAsync_ValidRequest_ReturnsRequestedItem()
         {
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
 
             var result = await itemClient.GetItemAsync(GameInventoryIdExisting);
             result.GameInventoryId.ShouldBe(GameInventoryIdExisting);
@@ -35,7 +36,7 @@ namespace IviSdkCsharp.Tests.Item
         [Fact]
         public async Task GetItemAsync_NotFound_ReturnsNull()
         {
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
             var result = await itemClient.GetItemAsync(GameInventoryIdNotFound);
             
             result.ShouldBeNull();
@@ -44,14 +45,14 @@ namespace IviSdkCsharp.Tests.Item
         [Fact]
         public async Task GetItemAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var itemClient = new IviItemClient(null, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, null, _fixture.Client);
             Should.Throw<IVIException>(async () => await itemClient.GetItemAsync(GameInventoryIdThrow));
         }
 
         [Fact]
         public async Task GetItemsAsync_ValidRequest_ReturnsRequestedItems()
         {
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
             var (offset, pageSize, sortOrder) = GetItemsExpectedRequestData;
             
             var result = await itemClient.GetItemsAsync(offset, pageSize, sortOrder);
@@ -62,7 +63,7 @@ namespace IviSdkCsharp.Tests.Item
         [Fact]
         public void GetItemsAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
             var (offset, pageSize, sortOrder) = GetItemsExpectedRequestData;
 
             Should.Throw<IVIException>(async () =>
@@ -73,7 +74,7 @@ namespace IviSdkCsharp.Tests.Item
         public async Task BurnItemAsync_ValidRequest()
         {
             var executor = new MockItemExecutor();
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client)
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client)
             {
                 UpdateSubscription = executor
             };
@@ -88,7 +89,7 @@ namespace IviSdkCsharp.Tests.Item
         [Fact]
         public async Task BurnItemAsync_NotFound()
         {
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
             
             Should.Throw<IVIException>(async () => await itemClient.BurnItemAsync("DoesntExists"));
         }
@@ -96,7 +97,7 @@ namespace IviSdkCsharp.Tests.Item
         [Fact]
         public void BurnItemAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
 
             Should.Throw<IVIException>(async () => await itemClient.BurnItemAsync(GameInventoryIdThrow));
         }
@@ -105,7 +106,7 @@ namespace IviSdkCsharp.Tests.Item
         public async Task TransferItemAsync_ValidRequest()
         {
             var executor = new MockItemExecutor();
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client)
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client)
             {
                 UpdateSubscription = executor
             };
@@ -120,7 +121,7 @@ namespace IviSdkCsharp.Tests.Item
         [Fact]
         public async Task TransferItemAsync_NotFound()
         {
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
             
             Should.Throw<IVIException>(async () => await itemClient.TransferItemAsync("DoesntExists", "PLayerA", "PlayerB", "MythicalStore"));
         }
@@ -128,7 +129,7 @@ namespace IviSdkCsharp.Tests.Item
         [Fact]
         public void TransferItemAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
 
             Should.Throw<IVIException>(async () => await itemClient.TransferItemAsync(GameInventoryIdThrow, "PLayerA", "PlayerB", "MythicalStore"));
         }
@@ -142,7 +143,7 @@ namespace IviSdkCsharp.Tests.Item
         public async Task IssueItemAsync_ValidRequest(string stringValue, string expectedStringValue)
         {
             var executor = new MockItemExecutor();
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client)
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client)
             {
                 UpdateSubscription = executor
             };
@@ -166,7 +167,7 @@ namespace IviSdkCsharp.Tests.Item
         [Fact]
         public void IssueItemAsync_gRPCServiceThrows_ThrowsIVIException()
         {
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
         
             Should.Throw<IVIException>(async () => await itemClient.IssueItemAsync(GameInventoryIdThrow, "SomePlayer", "wizardStaff", "gameTypeIdThing", 010,
                 "notUsed",
@@ -182,7 +183,7 @@ namespace IviSdkCsharp.Tests.Item
         [Fact]
         public async Task UpdateItemMetadataAsync_ValidRequest()
         {
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
 
             // This is asserted inside the service to check if the request is passing the correct
             // params down to the gRPC service
@@ -196,7 +197,7 @@ namespace IviSdkCsharp.Tests.Item
         [Fact]
         public void UpdateItemMetadataAsync_ShouldThrow()
         {
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
 
             // This is asserted inside the service to check if the request is passing the correct
             // params down to the gRPC service
@@ -217,7 +218,7 @@ namespace IviSdkCsharp.Tests.Item
             };
             List<IviMetadataUpdate>? updateList = new() {new IviMetadataUpdate(GameInventoryIdListed, testMetadata)};
             updateList.Add(new IviMetadataUpdate(GameInventoryIdIssueId, testMetadata));
-            var itemClient = new IviItemClient(NullLogger<IviItemClient>.Instance, _fixture.Client);
+            var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
 
             // This is asserted inside the service to check if the request is passing the correct
             // params down to the gRPC service

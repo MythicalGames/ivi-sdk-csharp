@@ -58,7 +58,7 @@ namespace IviSdkCsharp.Tests.Item.Services
 
         public override Task<IssueItemStartedResponse> IssueItem(IssueItemRequest request, ServerCallContext context)
         {
-            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.EnvironmentId.ShouldBe(GrpcTestServerFixture.Config.EnvironmentId);
             if (request.GameInventoryId == GameInventoryIdThrow) throw new System.Exception();
             return Task.FromResult(new IssueItemStartedResponse
             {
@@ -79,7 +79,7 @@ namespace IviSdkCsharp.Tests.Item.Services
                 Description = "description of update list", 
                 Image = "justanotherimgurl" 
             };
-            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.EnvironmentId.ShouldBe(GrpcTestServerFixture.Config.EnvironmentId);
             
             foreach (var item in request.UpdateItems) {
                 if (item.GameInventoryId == GameInventoryIdExisting)
