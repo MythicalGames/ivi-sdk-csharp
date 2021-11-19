@@ -23,20 +23,16 @@ namespace Games.Mythical.Ivi.Sdk.Client
 {
     public class IviItemTypeClient : AbstractIVIClient
     {
-        private readonly ILogger<IviItemTypeClient> _logger;
         private readonly IVIItemTypeExecutor? _itemTypeExecutor;
         private ItemTypeService.ItemTypeServiceClient? _client;
         private ItemTypeStatusStream.ItemTypeStatusStreamClient? _streamClient;
 
-        public IviItemTypeClient(ILogger<IviItemTypeClient>? logger)
-        {
-            _logger = logger ?? new NullLogger<IviItemTypeClient>();
-        }
+        public IviItemTypeClient(ILogger<IviItemTypeClient>? logger) 
+            : base(logger: logger) { }
 
-        internal IviItemTypeClient(ILogger<IviItemTypeClient>? logger, HttpClient httpClient) : base(httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient })
-        {
-            _logger = logger ?? new NullLogger<IviItemTypeClient>();
-        }
+        internal IviItemTypeClient(ILogger<IviItemTypeClient>? logger, HttpClient httpClient) 
+            : base(httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
+
         private ItemTypeService.ItemTypeServiceClient Client => _client ??= new ItemTypeService.ItemTypeServiceClient(Channel);
 
         public IVIItemTypeExecutor UpdateSubscription

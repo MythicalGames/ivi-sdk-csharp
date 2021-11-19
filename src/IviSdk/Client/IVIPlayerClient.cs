@@ -22,16 +22,15 @@ namespace Games.Mythical.Ivi.Sdk.Client
 {
     public class IviPlayerClient : AbstractIVIClient
     {
-        private readonly ILogger<IviPlayerClient> _logger;
         private readonly IVIPlayerExecutor? _playerExecutor;
         private PlayerService.PlayerServiceClient? _client;
         private PlayerStream.PlayerStreamClient? _streamClient;
 
-        public IviPlayerClient(ILogger<IviPlayerClient>? logger) => _logger = logger ?? new NullLogger<IviPlayerClient>();
+        public IviPlayerClient(ILogger<IviPlayerClient>? logger) 
+            : base(logger: logger) { }
 
         internal IviPlayerClient(ILogger<IviPlayerClient>? logger, HttpClient httpClient)
-            : base(httpClient.BaseAddress!, new GrpcChannelOptions{ HttpClient = httpClient }) =>
-            _logger = logger ?? new NullLogger<IviPlayerClient>();
+            : base(httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
 
         public IVIPlayerExecutor UpdateSubscription
         {

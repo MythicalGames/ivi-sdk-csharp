@@ -8,7 +8,6 @@ namespace Mythical.Game.IviSdkCSharp.Model
         public OrderState? OrderStatus { get; set; }
         public string? PaymentInstrumentType { get; set; }
         public string? TransactionId { get; set; }
-        public List<IviIssuedItem>? PendingIssuedItems { get; set; }
         public IviFraudResult? FraudScore { get; set; }
         public string? ProcessorResponse { get; set; }
     }

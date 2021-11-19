@@ -137,7 +137,7 @@ namespace IviSdkCsharp.Tests.Order
                 EnvironmentId = IviConfiguration.EnvironmentId,
                 Metadata = new Struct(),
                 OrderId = "order1",
-                OrderStatus = Ivi.Proto.Common.Order.OrderState.Declined,
+                OrderStatus = Ivi.Proto.Common.Order.OrderState.Failed,
                 PaymentProviderData = new PaymentProviderOrderProto 
                 { 
                     Bitpay = new BitPayProto { Invoice = new Struct() }
@@ -202,7 +202,7 @@ namespace IviSdkCsharp.Tests.Order
                     ["truck"] = "foo",
                 },
                 OrderId = "order1",
-                OrderStatus = Ivi.Proto.Common.Order.OrderState.Declined,
+                OrderStatus = Ivi.Proto.Common.Order.OrderState.Failed,
                 PaymentProviderData = new IviBitpayOrder
                 {
                     Invoice = new ()
@@ -311,7 +311,7 @@ namespace IviSdkCsharp.Tests.Order
                     FraudOmniscore = "omni1",
                     FraudScore = 12,
                 },
-                OrderStatus = Ivi.Proto.Common.Order.OrderState.Declined,
+                OrderStatus = Ivi.Proto.Common.Order.OrderState.Failed,
                 PaymentInstrumentType = "type1",
                 PendingIssuedItems = new(),
                 ProcessorResponse = "proc1",
@@ -345,7 +345,7 @@ namespace IviSdkCsharp.Tests.Order
             var expectedResp = new IviFinalizeOrderResponse
             {
                 FraudScore = new IviFraudResult { FraudOmniscore = "omni1", FraudScore = 12 },
-                OrderStatus = Ivi.Proto.Common.Order.OrderState.Declined,
+                OrderStatus = Ivi.Proto.Common.Order.OrderState.Failed,
                 PaymentInstrumentType = "type1",
                 PendingIssuedItems = new()
                 {

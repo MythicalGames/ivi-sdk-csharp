@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mythical.Game.IviSdkCSharp.Config;
 using Mythical.Game.IviSdkCSharp.Exception;
 using Mythical.Game.IviSdkCSharp.Mapper;
@@ -21,12 +23,13 @@ namespace Games.Mythical.Ivi.Sdk.Client
         protected readonly string EnvironmentId;
         protected readonly string ApiKey;
         // gRPC settings
+        protected readonly ILogger _logger;
         protected int KeepAlive { get; }
         protected GrpcChannel Channel;
 
         static AbstractIVIClient() => MappersConfig.RegisterMappings();
 
-        protected AbstractIVIClient(Uri? address = default, GrpcChannelOptions? options = default)
+        protected AbstractIVIClient(Uri? address = default, GrpcChannelOptions? options = default, ILogger? logger = null)
         {
             EnsureStringValue(IviConfiguration.EnvironmentId, "Environment Id not set!", IVIErrorCode.ENVIRONMENT_ID_NOT_SET);
             EnsureStringValue(IviConfiguration.ApiKey, "API Key not set!", IVIErrorCode.APIKEY_NOT_SET);
@@ -38,7 +41,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
             Port = IviConfiguration.Port;
             KeepAlive = IviConfiguration.KeepAlive;
             Channel = ConstructChannel(address ?? new Uri($"{Host}:{Port}"), options);
-
+            _logger = NullLogger.Instance;
             static void EnsureStringValue(string? value, string errorMessage, IVIErrorCode errorCode)
             {
                 if (string.IsNullOrWhiteSpace(value)) throw new IVIException(errorMessage, errorCode);
@@ -55,6 +58,23 @@ namespace Games.Mythical.Ivi.Sdk.Client
             options ??= new();
             options.Credentials = ChannelCredentials.Create(new SslCredentials(), callCredentials!);
             return GrpcChannel.ForAddress(address, options);
+        }
+
+        protected async Task<TReturn> TryCall<TReturn>(Func<Task<TReturn>> action, [CallerMemberName]string caller = "")
+        {
+            try
+            {
+                return await action();
+            }
+            catch (RpcException e)
+            {
+                throw IVIException.FromGrpcException(e);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Exception calling {caller}. ");
+                throw new IVIException(e, IVIErrorCode.LOCAL_EXCEPTION);
+            }
         }
 
         protected static (Func<Task> wait, Action reset) GetReconnectAwaiter(ILogger? logger) 

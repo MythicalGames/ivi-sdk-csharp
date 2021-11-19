@@ -21,16 +21,15 @@ namespace Games.Mythical.Ivi.Sdk.Client
 {
     public class IviOrderClient : AbstractIVIClient
     {
-        private readonly ILogger<IviOrderClient> _logger;
         private readonly IVIOrderExecutor? _orderExecutor;
         private OrderService.OrderServiceClient? _client;
         private OrderStream.OrderStreamClient? _streamClient;
 
-        public IviOrderClient(ILogger<IviOrderClient>? logger) => _logger = logger ?? new NullLogger<IviOrderClient>();
+        public IviOrderClient(ILogger<IviOrderClient>? logger) 
+            : base(logger: logger) { }
 
         internal IviOrderClient(ILogger<IviOrderClient>? logger, HttpClient httpClient)
-            : base(httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }) =>
-            _logger = logger ?? new NullLogger<IviOrderClient>();
+            : base(httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
 
         public IVIOrderExecutor UpdateSubscription
         {
@@ -45,13 +44,20 @@ namespace Games.Mythical.Ivi.Sdk.Client
 
         public async Task<IviOrder?> GetOrder(string orderId)
         {
-            var result = await Client.GetOrderAsync(new GetOrderRequest { EnvironmentId = EnvironmentId, OrderId = orderId });
+            var result = await TryCall(async () => await Client.GetOrderAsync(new () { EnvironmentId = EnvironmentId, OrderId = orderId }));
             return result.Adapt<IviOrder>();
         }
 
-        public async Task<IviOrder> CreatePrimaryOrderAsync(string storeId, string buyerPlayerId, decimal subTotal, IviAddress address, PaymentProviderId paymentProviderId, List<IviItemTypeOrder> purchasedItems, Dictionary<string, object> metadata, string requestIp)
+        public async Task<IviOrder> CreatePrimaryOrderAsync(string storeId, 
+            string buyerPlayerId, 
+            decimal subTotal, 
+            IviAddress address, 
+            PaymentProviderId paymentProviderId, 
+            List<IviItemTypeOrder> purchasedItems, 
+            Dictionary<string, object> metadata, 
+            string? requestIp)
         {
-            var result = await Client.CreateOrderAsync(new CreateOrderRequest
+            var result = await TryCall(async () => await Client.CreateOrderAsync(new ()
             {
                 EnvironmentId = EnvironmentId,
                 StoreId = storeId,
@@ -61,23 +67,52 @@ namespace Games.Mythical.Ivi.Sdk.Client
                 Metadata = metadata.Adapt<Struct>(),
                 PaymentProviderId = paymentProviderId,
                 PurchasedItems = purchasedItems.Adapt<ItemTypeOrders>(),
-                RequestIp = requestIp,
-            });
+                RequestIp = requestIp ?? string.Empty,
+            }));
             return result.Adapt<IviOrder>();
         }
 
         public Task<IviFinalizeOrderResponse> FinalizeBitpayOrderAsync(string orderId, string invoiceId, string fraudSessionId)
-            => FinalizeOrder(orderId, fraudSessionId, new PaymentRequestProto { Bitpay = new BitPayPaymentRequestProto { InvoiceId = invoiceId } });
+            => FinalizeOrder(orderId, fraudSessionId, new () { Bitpay = new () { InvoiceId = invoiceId } });
+
+        public Task<IviFinalizeOrderResponse> FinalizeCybersourceOrder(string orderId,
+            string cardType,
+            string expirationMonth,
+            string expirationYear,
+            string instrumentId,
+            string paymentMethodTokenId,
+            string fraudSessionId)
+            => FinalizeOrder(orderId, fraudSessionId, new PaymentRequestProto
+            {
+                Cybersource = new ()
+                {
+                    CardType = cardType,
+                    ExpirationMonth = expirationMonth,
+                    ExpirationYear = expirationYear,
+                    InstrumentId = instrumentId,
+                    PaymentMethodTokenId = paymentMethodTokenId,
+                }
+            });
+
+        public Task<IviFinalizeOrderResponse> FinalizeUpholdOrder(string orderId, string upholdExternalCardId, string quoteId, string fraudSessionId)
+            => FinalizeOrder(orderId, fraudSessionId, new PaymentRequestProto
+            {
+                Uphold = new ()
+                {
+                    ExternalCardId = upholdExternalCardId,
+                    QuoteId = quoteId,
+                }
+            });
 
         private async Task<IviFinalizeOrderResponse> FinalizeOrder(string orderId, string fraudSessionId, PaymentRequestProto paymentRequest)
         {
-            var result = await Client.FinalizeOrderAsync(new FinalizeOrderRequest
+            var result = await TryCall(async () => await Client.FinalizeOrderAsync(new FinalizeOrderRequest
             {
                 EnvironmentId = EnvironmentId,
                 PaymentRequestData = paymentRequest,
                 FraudSessionId = fraudSessionId,
                 OrderId = orderId
-            });
+            }));
             return result.Adapt<IviFinalizeOrderResponse>();
         }
 
