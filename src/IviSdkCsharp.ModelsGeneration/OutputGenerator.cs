@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using StringBuilder = System.Text.StringBuilder;
 
 namespace IviSdkCsharp.ModelsGeneration
 {
@@ -14,7 +14,6 @@ namespace IviSdkCsharp.ModelsGeneration
 
         internal static string GenerateClass(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
         {
-            
             var allModelProps = ModelsGenerator.GetAllProperties(targetType).ToArray();
 
             var props = new StringBuilder();
@@ -37,7 +36,9 @@ namespace IviSdkCsharp.ModelsGeneration
                     .AppendLine();
             }
 
-            string constructors = GenerateConsructors(modelName, modelProperties);
+            var constructors = GenerateConsructors(modelName, modelProperties);
+            var equalityMembers = GenerateEqualityMembers(modelName, modelProperties.Keys);
+            var getHasCode = GenerateGetHashCode(modelProperties.Keys);
 
             return Beautify($@"{string.Join(Environment.NewLine, namespaces)}
 
@@ -47,6 +48,8 @@ public partial class {modelName}
 {{
 {constructors}
 {props}
+{equalityMembers}
+{getHasCode}
 }}
 }}
 ");
@@ -72,6 +75,53 @@ public partial class {modelName}
                 result.Append(" = ");
                 result.Append(initValue).Append(";");
             }
+        }
+
+        private static string GenerateEqualityMembers(string modelName, IEnumerable<string> properties)
+        {
+            var result = new StringBuilder();
+            AppendTypedEquals(modelName, properties, result);
+
+            result.AppendLine("public override bool Equals(object? obj)");
+            result.AppendLine("{");
+            result.AppendLine("if (ReferenceEquals(null, obj)) return false;");
+            result.AppendLine("if (ReferenceEquals(this, obj)) return true;");
+            result.AppendLine("if (obj.GetType() != this.GetType()) return false;");
+            result.Append("return Equals((").Append(modelName).AppendLine(") obj);");
+            result.AppendLine("}");
+
+            return result.ToString();
+
+            static void AppendTypedEquals(string name, IEnumerable<string> properties, StringBuilder output)
+            {
+                output .Append("protected bool Equals(").Append(name).AppendLine(" other)");
+                output.AppendLine("{");
+                output.Append(" return ");
+                var isFirstProp = true;
+                foreach (var prop in properties)
+                {
+                    if (!isFirstProp) output.Append("&& ");
+                    output.Append(prop).Append(" == other.").Append(prop).Append(" ");
+                    isFirstProp = false;
+                }
+                output.AppendLine(";");
+                output.AppendLine("}").AppendLine();
+            }
+        }
+
+        private static string GenerateGetHashCode(IEnumerable<string> properties)
+        {
+            var result = new StringBuilder("public override int GetHashCode()");
+            result.AppendLine().AppendLine("{");
+            result.AppendLine("var hashCode = new HashCode();");
+            foreach (var prop in properties)
+            {
+                result.Append("hashCode.Add(").Append(prop).AppendLine(");");
+            }
+            result.AppendLine("return hashCode.ToHashCode();");
+            result.Append("}");
+
+            return result.ToString();
         }
 
         internal static string GenerateEnum(INamedTypeSymbol targetType, HashSet<string> namespaces, string modelName)
