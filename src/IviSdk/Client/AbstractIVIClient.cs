@@ -8,6 +8,7 @@ using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mythical.Game.IviSdkCSharp.Config;
+using Mythical.Game.IviSdkCSharp.Exception;
 using Mythical.Game.IviSdkCSharp.Mapper;
 
 [assembly:InternalsVisibleTo("IviSdkCsharp.Tests")]
@@ -37,8 +38,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
             Port = config.Port;
             KeepAlive = config.KeepAlive;
             Channel = ConstructChannel(address ?? new Uri($"{Host}:{Port}"), options); 
-            _logger = NullLogger.Instance;
-
+            _logger = logger ?? NullLogger.Instance;
         }
 
         private GrpcChannel ConstructChannel(Uri address, GrpcChannelOptions? options = default)

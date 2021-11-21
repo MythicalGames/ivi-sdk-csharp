@@ -102,13 +102,6 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                 .Compile();
 
             TypeAdapterConfig<FinalizeOrderAsyncResponse, IviFinalizeOrderResponse>.NewConfig()
-                .AfterMapping((src, dest) =>
-                {
-                    if (src.PendingIssuedItems != null)
-                    {
-                        dest.PendingIssuedItems = src.PendingIssuedItems.PurchasedItems.Select(o => o.Adapt<IviIssuedItem>()).ToList();
-                    }
-                })
                 .Compile();
         }
     }

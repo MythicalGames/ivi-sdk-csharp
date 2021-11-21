@@ -30,7 +30,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
         private PlayerStream.PlayerStreamClient? _streamClient;
 
         public IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger) 
-            : base(config, logger: logger) { };
+            : base(config, logger: logger) { }
 
         internal IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger, HttpClient httpClient)
             : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger: logger) { }

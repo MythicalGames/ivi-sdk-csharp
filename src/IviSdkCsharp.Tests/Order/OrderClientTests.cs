@@ -85,7 +85,7 @@ namespace IviSdkCsharp.Tests.Order
             };
             request.Address.ShouldBe(expectedAddress);
             request.BuyerPlayerId.ShouldBe("123player");
-            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.EnvironmentId.ShouldBe(GrpcTestServerFixture.Config.EnvironmentId);
             var expectedMeta = new Struct();
             expectedMeta.Fields.Add("blah", Value.ForString("ok"));
             expectedMeta.Fields.Add("wow", Value.ForNumber(12));
@@ -134,7 +134,7 @@ namespace IviSdkCsharp.Tests.Order
                 BuyerPlayerId = "buyer1",
                 CreatedBy = "me",
                 CreatedTimestamp = new DateTimeOffset(2000, 5, 5, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds(),
-                EnvironmentId = IviConfiguration.EnvironmentId,
+                EnvironmentId = GrpcTestServerFixture.Config.EnvironmentId,
                 Metadata = new Struct(),
                 OrderId = "order1",
                 OrderStatus = Ivi.Proto.Common.Order.OrderState.Failed,
@@ -195,7 +195,7 @@ namespace IviSdkCsharp.Tests.Order
                 BuyerPlayerId = "buyer1",
                 CreatedBy = "me",
                 CreatedTimestamp = new DateTimeOffset(2000, 5, 5, 0, 0, 0, TimeSpan.Zero),
-                EnvironmentId = IviConfiguration.EnvironmentId,
+                EnvironmentId = GrpcTestServerFixture.Config.EnvironmentId,
                 ListingId = "",
                 Metadata = new ()
                 {
@@ -255,7 +255,7 @@ namespace IviSdkCsharp.Tests.Order
 
             FakeOrderService.UseMock(mock.Object);
             var result = await client.GetOrder("asdf");
-            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.EnvironmentId.ShouldBe(GrpcTestServerFixture.Config.EnvironmentId);
             request.OrderId.ShouldBe("asdf");
         }
 
@@ -289,7 +289,7 @@ namespace IviSdkCsharp.Tests.Order
             var client = CreateClient();
             await client.FinalizeBitpayOrderAsync("order1", "inv1", "sess1");
 
-            request.EnvironmentId.ShouldBe(IviConfiguration.EnvironmentId);
+            request.EnvironmentId.ShouldBe(GrpcTestServerFixture.Config.EnvironmentId);
             request.FraudSessionId.ShouldBe("sess1");
             request.OrderId = "order1";
             request.PaymentRequestData.ShouldBe(new PaymentRequestProto
@@ -318,22 +318,6 @@ namespace IviSdkCsharp.Tests.Order
                 Success = true,
                 TransactionId = "tran1"
             };
-            actualResp.PendingIssuedItems.PurchasedItems.Add(new IssuedItem()
-            {
-                AmountPaid = "234",
-                Currency = "money",
-                GameInventoryId = "inv1",
-                GameItemTypeId = "item-type1",
-                ItemName = "item-one",
-                Metadata = new Ivi.Proto.Common.Metadata
-                {
-                    Name = "name1",
-                    Description = "desc1",
-                    Image = "img.jpg",
-                    Properties = new Struct(),
-                }
-            });
-            actualResp.PendingIssuedItems.PurchasedItems[0].Metadata.Properties.Fields.Add("foot", Value.ForString("lettuce"));
             var mock = new Mock<FakeOrderService>();
             mock.Setup(s => s.FinalizeOrder(It.IsAny<FinalizeOrderRequest>(), It.IsAny<ServerCallContext>()))
                 .Returns(() => Task.FromResult(actualResp));
@@ -347,27 +331,6 @@ namespace IviSdkCsharp.Tests.Order
                 FraudScore = new IviFraudResult { FraudOmniscore = "omni1", FraudScore = 12 },
                 OrderStatus = Ivi.Proto.Common.Order.OrderState.Failed,
                 PaymentInstrumentType = "type1",
-                PendingIssuedItems = new()
-                {
-                    new ()
-                    {
-                        AmountPaid = 234m,
-                        Currency = "money",
-                        GameInventoryId = "inv1",
-                        GameItemTypeId = "item-type1",
-                        ItemName = "item-one",
-                        Metadata = new()
-                        {
-                            Name = "name1",
-                            Description = "desc1",
-                            Image = "img.jpg",
-                            Properties = new()
-                            {
-                                ["foot"] = "lettuce"
-                            }
-                        }
-                    }
-                },
                 ProcessorResponse = "proc1",
                 Success = true,
                 TransactionId = "tran1",
@@ -377,6 +340,6 @@ namespace IviSdkCsharp.Tests.Order
         }
 
         private IviOrderClient CreateClient()
-            => new(NullLogger<IviOrderClient>.Instance, _fixture.Client);
+            => new(GrpcTestServerFixture.Config, NullLogger<IviOrderClient>.Instance, _fixture.Client);
     }
 }

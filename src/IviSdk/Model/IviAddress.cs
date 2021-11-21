@@ -2,14 +2,14 @@
 {
     public class IviAddress
     {
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? AddressLine1 { get; set; }
-        public string? AddressLine2 { get; set; }
-        public string? City { get; set; }
-        public string? State { get; set; }
-        public string? PostalCode { get; set; }
-        public string? CountryName { get; set; }
-        public string? CountryIsoAlpha2 { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string AddressLine1 { get; set; } = string.Empty;
+        public string AddressLine2 { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string State { get; set; } = string.Empty;
+        public string PostalCode { get; set; } = string.Empty;
+        public string CountryName { get; set; } = string.Empty;
+        public string CountryIsoAlpha2 { get; set; } = string.Empty;
     }
 }

@@ -15,6 +15,7 @@ using IviSdkCsharp.Client.Executor;
 using Mapster;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Mythical.Game.IviSdkCSharp.Config;
 using Mythical.Game.IviSdkCSharp.Model;
 
 namespace Games.Mythical.Ivi.Sdk.Client
@@ -25,11 +26,11 @@ namespace Games.Mythical.Ivi.Sdk.Client
         private OrderService.OrderServiceClient? _client;
         private OrderStream.OrderStreamClient? _streamClient;
 
-        public IviOrderClient(ILogger<IviOrderClient>? logger) 
-            : base(logger: logger) { }
+        public IviOrderClient(IviConfiguration config, ILogger<IviOrderClient>? logger) 
+            : base(config, logger: logger) { }
 
-        internal IviOrderClient(ILogger<IviOrderClient>? logger, HttpClient httpClient)
-            : base(httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
+        internal IviOrderClient(IviConfiguration config, ILogger<IviOrderClient>? logger, HttpClient httpClient)
+            : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
 
         public IVIOrderExecutor UpdateSubscription
         {
