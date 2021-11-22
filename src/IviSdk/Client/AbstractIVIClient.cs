@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mythical.Game.IviSdkCSharp.Config;
+using Mythical.Game.IviSdkCSharp.Exception;
 using Mythical.Game.IviSdkCSharp.Mapper;
 
 [assembly:InternalsVisibleTo("IviSdkCsharp.Tests")]
@@ -19,12 +23,13 @@ namespace Games.Mythical.Ivi.Sdk.Client
         protected readonly string EnvironmentId;
         protected readonly string ApiKey;
         // gRPC settings
+        protected readonly ILogger _logger;
         protected int KeepAlive { get; }
         protected GrpcChannel Channel;
 
         static AbstractIVIClient() => MappersConfig.RegisterMappings();
 
-        protected AbstractIVIClient(IviConfiguration config, Uri? address = default, GrpcChannelOptions? options = default)
+        protected AbstractIVIClient(IviConfiguration config, Uri? address = default, GrpcChannelOptions? options = default, ILogger? logger = null)
         {
             config.Validate();
             EnvironmentId = config.EnvironmentId!;
@@ -32,7 +37,8 @@ namespace Games.Mythical.Ivi.Sdk.Client
             Host = config.Host;
             Port = config.Port;
             KeepAlive = config.KeepAlive;
-            Channel = ConstructChannel(address ?? new Uri($"{Host}:{Port}"), options);
+            Channel = ConstructChannel(address ?? new Uri($"{Host}:{Port}"), options); 
+            _logger = logger ?? NullLogger.Instance;
         }
 
         private GrpcChannel ConstructChannel(Uri address, GrpcChannelOptions? options = default)
@@ -47,22 +53,38 @@ namespace Games.Mythical.Ivi.Sdk.Client
             return GrpcChannel.ForAddress(address, options);
         }
 
-        protected static (Func<Task> wait, Action reset) GetReconnectAwaiter<T>(ILogger<T>? logger) 
-            where T : AbstractIVIClient
+        protected async Task<TReturn> TryCall<TReturn>(Func<Task<TReturn>> action, [CallerMemberName]string caller = "")
         {
-            var (wait, reset) = new ReconnectAwaiter<T>(logger);
+            try
+            {
+                return await action();
+            }
+            catch (RpcException e)
+            {
+                throw IVIException.FromGrpcException(e);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Exception calling {caller}. ");
+                throw new IVIException(e, IVIErrorCode.LOCAL_EXCEPTION);
+            }
+        }
+
+        protected static (Func<Task> wait, Action reset) GetReconnectAwaiter(ILogger? logger) 
+        {
+            var (wait, reset) = new ReconnectAwaiter(logger);
             return (wait, reset);
         }
 
-        private class ReconnectAwaiter<T> where T: AbstractIVIClient
+        private class ReconnectAwaiter
         {
-            private readonly ILogger<T>? _logger;
+            private readonly ILogger? _logger;
             private readonly Random rnd = new((int) DateTime.Now.Ticks);
             private bool _skippedDelayingFirstRetry;
             private int _requestCount = 1;
             private const int MaxPower = 15; // 2^15 = 32768 milliseconds ~ 33 seconds
 
-            public ReconnectAwaiter(ILogger<T>? logger) => _logger = logger;
+            public ReconnectAwaiter(ILogger? logger) => _logger = logger;
 
             private async Task WaitBeforeReconnect()
             {

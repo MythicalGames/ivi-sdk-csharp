@@ -28,8 +28,8 @@ namespace IviSdkCsharp.Tests
             EnvironmentId = "test environment id"
         };
     }
-    
-    [CollectionDefinition(GrpcTestServerFixture.GrpcTestServerFixtureCollection)]
+
+    [CollectionDefinition(GrpcTestServerFixture.GrpcTestServerFixtureCollection, DisableParallelization = true)]
     public class DatabaseCollection : ICollectionFixture<GrpcTestServerFixture>
     {
         // This class has no code, and is never created. Its purpose is simply

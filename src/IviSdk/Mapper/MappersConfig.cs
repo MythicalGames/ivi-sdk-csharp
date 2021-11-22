@@ -1,5 +1,11 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Serialization;
+using Google.Protobuf.Collections;
+using Google.Protobuf.WellKnownTypes;
 using Ivi.Proto.Api.Itemtype;
+using Ivi.Proto.Api.Order;
 using Ivi.Proto.Common;
 using Mapster;
 using Mythical.Game.IviSdkCSharp.Model;
@@ -37,7 +43,66 @@ namespace Mythical.Game.IviSdkCSharp.Mapper
                     {
                         dest.Properties.Fields.Add(metadataProperty.Key, Value.ForString(metadataProperty.Value.ToString()));
                     }
-                }).Compile(); 
+                }).Compile();
+
+            TypeAdapterConfig<List<IviItemTypeOrder>, ItemTypeOrders>.NewConfig()
+                .AfterMapping((src, dest) =>
+                {
+                    foreach (var item in src) dest.PurchasedItems.Add(item.Adapt<ItemTypeOrder>());
+                })
+                .Compile();
+
+            TypeAdapterConfig<string, decimal>.NewConfig()
+                .MapWith(src => src.ToDecimal())
+                .Compile();
+
+            TypeAdapterConfig<Dictionary<string, object>, Struct>.NewConfig()
+                .MapWith(src => src.ToProtoStruct())
+                .Compile();
+
+            TypeAdapterConfig<Struct, Dictionary<string, object>>.NewConfig()
+                .MapWith(src => src.ToDictionary())
+                .Compile();
+
+            TypeAdapterConfig<long, DateTimeOffset>.NewConfig()
+                .MapWith(src => DateTimeOffset.FromUnixTimeMilliseconds(src))
+                .Compile();
+
+            TypeAdapterConfig<DateTimeOffset, long>.NewConfig()
+                .MapWith(src => src.ToUnixTimeMilliseconds())
+                .Compile();
+
+
+            TypeAdapterConfig<IviItemTypeOrder, ItemTypeOrder>.NewConfig()
+                .AfterMapping((src, dest) =>
+                {
+                    dest.GameInventoryIds.Add(src.GameInventoryIds);
+                })
+                .Compile();
+
+            TypeAdapterConfig<PaymentProviderOrderProto, IIviPaymentProviderOrder?>.NewConfig()
+                .ConstructUsing(src => src.ProviderCase == PaymentProviderOrderProto.ProviderOneofCase.Bitpay ? src.Bitpay.Adapt<IviBitpayOrder>() : null)
+                .Compile();
+
+            TypeAdapterConfig<ItemTypeOrder, IviItemTypeOrder>.NewConfig()
+                .AfterMapping((src, dest) =>
+                {
+                    dest.GameInventoryIds = new List<string>(src.GameInventoryIds);
+                })
+                .Compile();
+
+            TypeAdapterConfig<Order, IviOrder>.NewConfig()
+                .AfterMapping((src, dest) =>
+                {
+                    if (src.PurchasedItems != null)
+                    {
+                        dest.PurchasedItems = src.PurchasedItems.PurchasedItems.Select(o => o.Adapt<IviItemTypeOrder>()).ToList();
+                    }
+                })
+                .Compile();
+
+            TypeAdapterConfig<FinalizeOrderAsyncResponse, IviFinalizeOrderResponse>.NewConfig()
+                .Compile();
         }
     }
 }

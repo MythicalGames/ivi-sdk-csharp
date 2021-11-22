@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Google.Protobuf.Collections;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Ivi.Proto.Api.Player;
@@ -24,17 +25,15 @@ namespace Games.Mythical.Ivi.Sdk.Client
 {
     public class IviPlayerClient : AbstractIVIClient
     {
-        private readonly ILogger<IviPlayerClient> _logger;
         private readonly IVIPlayerExecutor? _playerExecutor;
         private PlayerService.PlayerServiceClient? _client;
         private PlayerStream.PlayerStreamClient? _streamClient;
 
-        public IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger) : base(config) 
-            => _logger = logger ?? new NullLogger<IviPlayerClient>();
+        public IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger) 
+            : base(config, logger: logger) { }
 
         internal IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger, HttpClient httpClient)
-            : base(config, httpClient.BaseAddress!, new GrpcChannelOptions{ HttpClient = httpClient }) =>
-            _logger = logger ?? new NullLogger<IviPlayerClient>();
+            : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger: logger) { }
 
         public IVIPlayerExecutor UpdateSubscription
         {
