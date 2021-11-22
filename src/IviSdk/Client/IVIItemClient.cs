@@ -270,7 +270,7 @@ namespace Games.Mythical.Ivi.Sdk.Client
 
         public async Task UpdateItemMetadataAsync(String gameInventoryId, IviMetadata metadata, CancellationToken cancellationToken = default)
         {
-            _logger?.LogDebug("ItemClient.updateItemMetadata called with params: gameInventoryId {}, metadata {}, sortOrder {}", gameInventoryId, metadata);
+            _logger?.LogDebug("ItemClient.updateItemMetadata called with params: gameInventoryId {}, metadata {}", gameInventoryId, metadata);
             try
             {
                 List<UpdateItemMetadata>? updateList = new() {new UpdateItemMetadata() { GameInventoryId = gameInventoryId, Metadata = metadata.Adapt<Metadata>()}};
