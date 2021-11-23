@@ -2,34 +2,33 @@
 using System.Text.Json;
 using Ivi.Proto.Api.Player;
 using Ivi.Proto.Common.Sort;
-using Mythical.Game.IviSdkCSharp.Config;
 
-namespace IviSdkCsharp.Tests.Player.Services
+namespace IviSdkCsharp.Tests.Player.Services;
+
+public partial class FakePlayerService
 {
-    public partial class FakePlayerService
-    {
-        public const string PlayerIdExisting = "Ninja";
-        public const string PlayerIdNotFound = "Not found";
-        public const string PlayerIdThrow = "Should throw";
-        
-        public record GetPlayersExpectedRequest(DateTimeOffset createdTimestamp, int pageSize, SortOrder sortOrder);
-     
-        public static readonly GetPlayersExpectedRequest GetPlayersExpectedRequestData =
-            new (DateTimeOffset.UtcNow, 13579, SortOrder.Desc);
-        
-        private static bool IsDefaultRequest(GetPlayersRequest request)
-        {
-            if (request.EnvironmentId != GrpcTestServerFixture.Config.EnvironmentId) return false;
-            var createdTimestampDiff = (long) request.CreatedTimestamp -
-                                       GetPlayersExpectedRequestData.createdTimestamp.ToUnixTimeSeconds();
-            if (Math.Abs(createdTimestampDiff) > 1) return false;
-            if (request.PageSize != GetPlayersExpectedRequestData.pageSize) return false;
-            if (request.SortOrder != GetPlayersExpectedRequestData.sortOrder) return false;
-            return true;
-        }
+    public const string PlayerIdExisting = "Ninja";
+    public const string PlayerIdNotFound = "Not found";
+    public const string PlayerIdThrow = "Should throw";
 
-        private static readonly Lazy<IVIPlayer[]> _defaultPlayers = new(() => JsonSerializer.Deserialize<IVIPlayer[]>(
-            @"
+    public record GetPlayersExpectedRequest(DateTimeOffset createdTimestamp, int pageSize, SortOrder sortOrder);
+
+    public static readonly GetPlayersExpectedRequest GetPlayersExpectedRequestData =
+        new(DateTimeOffset.UtcNow, 13579, SortOrder.Desc);
+
+    private static bool IsDefaultRequest(GetPlayersRequest request)
+    {
+        if (request.EnvironmentId != GrpcTestServerFixture.Config.EnvironmentId) return false;
+        var createdTimestampDiff = (long)request.CreatedTimestamp -
+                                   GetPlayersExpectedRequestData.createdTimestamp.ToUnixTimeSeconds();
+        if (Math.Abs(createdTimestampDiff) > 1) return false;
+        if (request.PageSize != GetPlayersExpectedRequestData.pageSize) return false;
+        if (request.SortOrder != GetPlayersExpectedRequestData.sortOrder) return false;
+        return true;
+    }
+
+    private static readonly Lazy<IVIPlayer[]> _defaultPlayers = new(() => JsonSerializer.Deserialize<IVIPlayer[]>(
+        @"
 [
   {
     ""PlayerId"": ""molestias"",
@@ -96,14 +95,13 @@ namespace IviSdkCsharp.Tests.Player.Services
   }
 ]"));
 
-        public static IVIPlayers DefaultPlayers
+    public static IVIPlayers DefaultPlayers
+    {
+        get
         {
-            get
-            {
-                var result = new IVIPlayers();
-                result.IviPlayers.AddRange(_defaultPlayers.Value);
-                return result;
-            }
+            var result = new IVIPlayers();
+            result.IviPlayers.AddRange(_defaultPlayers.Value);
+            return result;
         }
     }
 }

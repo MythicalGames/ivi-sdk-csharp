@@ -8,41 +8,40 @@ using Microsoft.Extensions.Logging;
 using Mythical.Game.IviSdkCSharp.Config;
 using Mythical.Game.IviSdkCSharp.Model;
 
-namespace Games.Mythical.Ivi.Sdk.Client
+namespace Games.Mythical.Ivi.Sdk.Client;
+
+public class IviWalletClient : AbstractIVIClient
 {
-    public class IviWalletClient : AbstractIVIClient
+    private WalletService.WalletServiceClient? _client;
+
+    public IviWalletClient(IviConfiguration config, ILogger<IviWalletClient>? logger = null)
+        : base(config, logger: logger) { }
+
+    internal IviWalletClient(IviConfiguration config, ILogger<IviWalletClient>? logger, HttpClient httpClient)
+        : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
+
+    private WalletService.WalletServiceClient Client => _client ??= new(Channel);
+
+    public async Task<IviWallet> GetWalletUserAsync(string playerId, PayoutProviderId payoutProviderId)
     {
-        private WalletService.WalletServiceClient? _client;
-
-        public IviWalletClient(IviConfiguration config, ILogger<IviWalletClient>? logger = null)
-            : base(config, logger: logger) { }
-
-        internal IviWalletClient(IviConfiguration config, ILogger<IviWalletClient>? logger, HttpClient httpClient)
-            : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
-
-        private WalletService.WalletServiceClient Client => _client ??= new(Channel);
-
-        public async Task<IviWallet> GetWalletUserAsync(string playerId, PayoutProviderId payoutProviderId)
+        var result = await TryCall(async () => await Client.GetWalletUserAsync(new()
         {
-            var result = await TryCall(async () => await Client.GetWalletUserAsync(new()
-            {
-                EnvironmentId = EnvironmentId,
-                PlayerId = playerId,
-                ProviderId = payoutProviderId
-            }));
-            return result.Adapt<IviWallet>();
-        }
+            EnvironmentId = EnvironmentId,
+            PlayerId = playerId,
+            ProviderId = payoutProviderId
+        }));
+        return result.Adapt<IviWallet>();
+    }
 
-        public async Task<IviUpholdQuote> CreateUpholdQuoteAsync(string playerId, decimal total, string externalCardId)
+    public async Task<IviUpholdQuote> CreateUpholdQuoteAsync(string playerId, decimal total, string externalCardId)
+    {
+        var result = await TryCall(async () => await Client.CreateUpholdQuoteAsync(new()
         {
-            var result = await TryCall(async () => await Client.CreateUpholdQuoteAsync(new()
-            {
-                EnvironmentId = EnvironmentId,
-                ExternalCardId = externalCardId,
-                PlayerId = playerId,
-                Total = total.ToString()
-            }));
-            return result.Adapt<IviUpholdQuote>();
-        }
+            EnvironmentId = EnvironmentId,
+            ExternalCardId = externalCardId,
+            PlayerId = playerId,
+            Total = total.ToString()
+        }));
+        return result.Adapt<IviUpholdQuote>();
     }
 }
