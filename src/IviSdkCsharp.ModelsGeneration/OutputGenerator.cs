@@ -42,15 +42,13 @@ internal static class OutputGenerator
 
         return Beautify($@"{string.Join(Environment.NewLine, namespaces)}
 
-namespace {MythicalNamespace}
-{{    
+namespace {MythicalNamespace};   
 public partial class {modelName}
 {{
 {constructors}
 {props}
 {equalityMembers}
 {getHasCode}
-}}
 }}
 ");
     }
@@ -131,10 +129,8 @@ public partial class {modelName}
             .Replace(targetType.Name, modelName);
         return Beautify($@"{string.Join(Environment.NewLine, namespaces)}
 
-namespace {MythicalNamespace}
-{{    
+namespace {MythicalNamespace}; 
 {enumDefinition}
-}}
 ");
     }
 
