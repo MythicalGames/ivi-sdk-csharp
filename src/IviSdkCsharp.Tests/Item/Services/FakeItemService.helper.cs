@@ -1,55 +1,50 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using Ivi.Proto.Api.Item;
-using Ivi.Proto.Common;
 using Ivi.Proto.Common.Sort;
-using Mapster;
-using Mythical.Game.IviSdkCSharp.Config;
-using Mythical.Game.IviSdkCSharp.Model;
 
-namespace IviSdkCsharp.Tests.Item.Services
+namespace IviSdkCsharp.Tests.Item.Services;
+
+public partial class FakeItemService
 {
-    public partial class FakeItemService
+    public const string GameInventoryIdExisting = "ItemIdWizardStaff";
+    public const string GameInventoryIdBurning = "BurningId";
+    public const string GameInventoryIdIssueId = "IssueId";
+    public const string GameInventoryIdPendingIssue = "PendingIssue";
+    public const string GameInventoryIdPendingListed = "PendingListed";
+    public const string GameInventoryIdListed = "Listed";
+    public const string GameInventoryIdPendingTransfer = "PendingTrasfer";
+    public const string GameInventoryIdTransferred = "Transferred";
+    public const string GameInventoryIdPendingSale = "PendingSale";
+    public const string GameInventoryIdPendingBurned = "PendingBurned";
+    public const string GameInventoryIdBurned = "Burned";
+    public const string GameInventoryIdFailed = "Failed";
+    public const string GameInventoryIdPendingCloseListing = "PendingCloseListing ";
+    public const string GameInventoryIdListingClosed = "ListingClosed";
+    public const string GameInventoryIdUpdatedMetadata = "UpdatedMetadata";
+
+    public const string GameInventoryIdNotFound = "Not found";
+    public const string GameInventoryIdThrow = "Should throw";
+
+
+    public record GetItemsExpectedRequest(DateTimeOffset createdTimestamp, int pageSize, SortOrder sortOrder);
+
+    public static readonly GetItemsExpectedRequest GetItemsExpectedRequestData =
+        new(DateTimeOffset.UtcNow, 256, SortOrder.Desc);
+
+    private static bool IsDefaultRequest(GetItemsRequest request)
     {
-        public const string GameInventoryIdExisting = "ItemIdWizardStaff";
-        public const string GameInventoryIdBurning = "BurningId";
-        public const string GameInventoryIdIssueId = "IssueId";
-        public const string GameInventoryIdPendingIssue = "PendingIssue";
-        public const string GameInventoryIdPendingListed = "PendingListed";
-        public const string GameInventoryIdListed = "Listed";
-        public const string GameInventoryIdPendingTransfer = "PendingTrasfer";
-        public const string GameInventoryIdTransferred = "Transferred";
-        public const string GameInventoryIdPendingSale = "PendingSale";
-        public const string GameInventoryIdPendingBurned = "PendingBurned";
-        public const string GameInventoryIdBurned = "Burned";
-        public const string GameInventoryIdFailed = "Failed";
-        public const string GameInventoryIdPendingCloseListing = "PendingCloseListing ";
-        public const string GameInventoryIdListingClosed = "ListingClosed";
-        public const string GameInventoryIdUpdatedMetadata = "UpdatedMetadata";
+        if (request.EnvironmentId != GrpcTestServerFixture.Config.EnvironmentId) return false;
+        var createdTimestampDiff = (long)request.CreatedTimestamp -
+                                   GetItemsExpectedRequestData.createdTimestamp.ToUnixTimeSeconds();
+        if (Math.Abs(createdTimestampDiff) > 1) return false;
+        if (request.PageSize != GetItemsExpectedRequestData.pageSize) return false;
+        if (request.SortOrder != GetItemsExpectedRequestData.sortOrder) return false;
+        return true;
+    }
 
-        public const string GameInventoryIdNotFound = "Not found";
-        public const string GameInventoryIdThrow = "Should throw";
-
-
-        public record GetItemsExpectedRequest(DateTimeOffset createdTimestamp, int pageSize, SortOrder sortOrder);
-     
-        public static readonly GetItemsExpectedRequest GetItemsExpectedRequestData =
-            new (DateTimeOffset.UtcNow, 256, SortOrder.Desc);
-        
-        private static bool IsDefaultRequest(GetItemsRequest request)
-        {
-            if (request.EnvironmentId != GrpcTestServerFixture.Config.EnvironmentId) return false;
-            var createdTimestampDiff = (long) request.CreatedTimestamp -
-                                       GetItemsExpectedRequestData.createdTimestamp.ToUnixTimeSeconds();
-            if (Math.Abs(createdTimestampDiff) > 1) return false;
-            if (request.PageSize != GetItemsExpectedRequestData.pageSize) return false;
-            if (request.SortOrder != GetItemsExpectedRequestData.sortOrder) return false;
-            return true;
-        }
-        
-        private static readonly Lazy<Items> _defaultItems = new(() => JsonSerializer.Deserialize<Items>(
-            @"
+    private static readonly Lazy<Items> _defaultItems = new(() => JsonSerializer.Deserialize<Items>(
+        @"
 { ""Items_"": [
   {
     ""GameInventoryId"": ""ItemIdOne"",
@@ -208,15 +203,14 @@ namespace IviSdkCsharp.Tests.Item.Services
     ""UpdatedTimestamp"": ""2019-07-21T09:23:42 +05:00""
   }
 ]}"));
-        
-        public static  Items DefaultItems
+
+    public static Items DefaultItems
+    {
+        get
         {
-            get
-            {
-                var result = new Items();
-                result.Items_.AddRange(_defaultItems.Value.Items_);
-                return result;
-            }
+            var result = new Items();
+            result.Items_.AddRange(_defaultItems.Value.Items_);
+            return result;
         }
     }
 }

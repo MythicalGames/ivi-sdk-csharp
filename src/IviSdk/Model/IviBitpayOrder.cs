@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-namespace Mythical.Game.IviSdkCSharp.Model
-{
-    public class IviBitpayOrder : IIviPaymentProviderOrder
-    {
-        public IviBitpayOrder()
-        {
-        }
+namespace Mythical.Game.IviSdkCSharp.Model;
 
-        public Dictionary<string, object>? Invoice { get; set; }
+public class IviBitpayOrder : IIviPaymentProviderOrder
+{
+    public IviBitpayOrder()
+    {
     }
+
+    public Dictionary<string, object>? Invoice { get; set; }
 }

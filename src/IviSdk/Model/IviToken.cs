@@ -1,7 +1,6 @@
-﻿namespace Mythical.Game.IviSdkCSharp.Model
+﻿namespace Mythical.Game.IviSdkCSharp.Model;
+
+public class IviToken
 {
-    public class IviToken
-    {
-        public IviCybersourceJwk? CybersourceJwk { get; set; }
-    }
+    public IviCybersourceJwk? CybersourceJwk { get; set; }
 }

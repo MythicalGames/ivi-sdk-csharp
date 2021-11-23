@@ -1,6 +1,5 @@
-﻿namespace Mythical.Game.IviSdkCSharp.Model
+﻿namespace Mythical.Game.IviSdkCSharp.Model;
+
+public interface IIviPaymentProviderOrder
 {
-    public interface IIviPaymentProviderOrder
-    {
-    }
 }

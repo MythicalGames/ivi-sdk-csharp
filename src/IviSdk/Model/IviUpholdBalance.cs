@@ -1,8 +1,7 @@
-﻿namespace Mythical.Game.IviSdkCSharp.Model
+﻿namespace Mythical.Game.IviSdkCSharp.Model;
+
+public class IviUpholdBalance
 {
-    public class IviUpholdBalance
-    {
-        public decimal CurrentBalance { get; set; }
-        public decimal PendingBalance { get; set; }
-    }
+    public decimal CurrentBalance { get; set; }
+    public decimal PendingBalance { get; set; }
 }

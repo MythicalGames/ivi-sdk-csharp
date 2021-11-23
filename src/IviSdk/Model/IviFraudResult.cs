@@ -1,8 +1,7 @@
-﻿namespace Mythical.Game.IviSdkCSharp.Model
+﻿namespace Mythical.Game.IviSdkCSharp.Model;
+
+public class IviFraudResult
 {
-    public class IviFraudResult
-    {
-        public int FraudScore { get; set; }
-        public string? FraudOmniscore { get; set; }
-    }
+    public int FraudScore { get; set; }
+    public string? FraudOmniscore { get; set; }
 }

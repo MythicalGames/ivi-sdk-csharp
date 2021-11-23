@@ -7,89 +7,88 @@ using Microsoft.Extensions.Logging;
 using Mythical.Game.IviSdkCSharp.Mapper;
 using Mythical.Game.IviSdkCSharp.Model;
 
-namespace ClientSample
+namespace ClientSample;
+
+class Program
 {
-    class Program
+    static async Task Main()
     {
-        static async Task Main()
+        Setup setup = new ();
+        MappersConfig.RegisterMappings();
+
+        await PlayerClient_Usage(setup);
+        await ItemTypeClient_Usage(setup);
+        await ItemClient_Usage(setup);
+        Console.ReadLine();
+    }
+
+    private static async Task ItemClient_Usage(Setup setup)
+    {
+        var logger = setup.CreateLogger<IviItemClient>();
+
+        var itemClient = new IviItemClient(setup.IviConfig, logger)
         {
-            Setup setup = new ();
-            MappersConfig.RegisterMappings();
+            UpdateSubscription = new LoggingItemUpdateSubscription(logger)
+        };
 
-            await PlayerClient_Usage(setup);
-            await ItemTypeClient_Usage(setup);
-            await ItemClient_Usage(setup);
-            Console.ReadLine();
-        }
+        var items = await itemClient.GetItemsAsync(DateTimeOffset.MinValue, 4, SortOrder.Asc);
+        logger.LogInformation("GetItemsAsync: {@Items}", items);
+    }
 
-        private static async Task ItemClient_Usage(Setup setup)
+    private static async Task PlayerClient_Usage(Setup setup)
+    {
+        var logger = setup.CreateLogger<IviPlayerClient>();
+
+        var playerClient = new IviPlayerClient(setup.IviConfig, logger)
         {
-            var logger = setup.CreateLogger<IviItemClient>();
+            UpdateSubscription = new LoggingPlayerUpdateSubscription(logger)
+        };
+        var players = await playerClient.GetPlayersAsync(DateTimeOffset.MinValue, 3, IviSortOrder.Desc);
+        logger.LogInformation("GetPlayersAsync: {@Players}", players);
+    }
 
-            var itemClient = new IviItemClient(setup.IviConfig, logger)
-            {
-                UpdateSubscription = new LoggingItemUpdateSubscription(logger)
-            };
+    private static async Task ItemTypeClient_Usage(Setup setup)
+    {
+        var logger = setup.CreateLogger<IviItemTypeClient>();
 
-            var items = await itemClient.GetItemsAsync(DateTimeOffset.MinValue, 4, SortOrder.Asc);
-            logger.LogInformation("GetItemsAsync: {@Items}", items);
-        }
-
-        private static async Task PlayerClient_Usage(Setup setup)
+        var itemTypeClient = new IviItemTypeClient(setup.IviConfig, logger)
         {
-            var logger = setup.CreateLogger<IviPlayerClient>();
+            UpdateSubscription = new LoggingItemTypeUpdateSubscription(logger)
+        };
 
-            var playerClient = new IviPlayerClient(setup.IviConfig, logger)
-            {
-                UpdateSubscription = new LoggingPlayerUpdateSubscription(logger)
-            };
-            var players = await playerClient.GetPlayersAsync(DateTimeOffset.MinValue, 3, IviSortOrder.Desc);
-            logger.LogInformation("GetPlayersAsync: {@Players}", players);
-        }
-
-        private static async Task ItemTypeClient_Usage(Setup setup)
+        var metadataProperties = new Dictionary<string, object>
         {
-            var logger = setup.CreateLogger<IviItemTypeClient>();
+            {"base_price_usd", 1000},
+            {"season_display_name", "winter item types"},
+            {"collection", "WINTER"},
+            {"item_class", "the class"}
+        };
 
-            var itemTypeClient = new IviItemTypeClient(setup.IviConfig, logger)
-            {
-                UpdateSubscription = new LoggingItemTypeUpdateSubscription(logger)
-            };
+        var iviMetadata = new IviMetadata
+        {
+            Name = "name",
+            Description = "desc",
+            Image = "adsfs",
+            Properties = metadataProperties
+        };
 
-            var metadataProperties = new Dictionary<string, object>
-            {
-                {"base_price_usd", 1000},
-                {"season_display_name", "winter item types"},
-                {"collection", "WINTER"},
-                {"item_class", "the class"}
-            };
+        var iviItemType = new IviItemType
+        {
+            GameItemTypeId = "itemType.GameItemTypeId2",
+            TokenName = "itemType.TokenName2",
+            Category = "itemType.Category",
+            MaxSupply = 1000,
+            IssueTimeSpan = 0,
+            Burnable = true,
+            Transferable = true,
+            Sellable = true,
+            Metadata = iviMetadata
+        };
 
-            var iviMetadata = new IviMetadata
-            {
-                Name = "name",
-                Description = "desc",
-                Image = "adsfs",
-                Properties = metadataProperties
-            };
+        await itemTypeClient.CreateItemTypeAsync(iviItemType);
 
-            var iviItemType = new IviItemType
-            {
-                GameItemTypeId = "itemType.GameItemTypeId2",
-                TokenName = "itemType.TokenName2",
-                Category = "itemType.Category",
-                MaxSupply = 1000,
-                IssueTimeSpan = 0,
-                Burnable = true,
-                Transferable = true,
-                Sellable = true,
-                Metadata = iviMetadata
-            };
+        var itemTypes = await itemTypeClient.GetItemTypesAsync();
 
-            await itemTypeClient.CreateItemTypeAsync(iviItemType);
-
-            var itemTypes = await itemTypeClient.GetItemTypesAsync();
-
-            logger.LogInformation("GetItemTypesAsync: {itemTypes}", itemTypes);
-        }
+        logger.LogInformation("GetItemTypesAsync: {itemTypes}", itemTypes);
     }
 }
