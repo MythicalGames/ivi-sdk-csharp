@@ -21,7 +21,7 @@ using Metadata = Ivi.Proto.Common.Metadata;
 
 namespace Games.Mythical.Ivi.Sdk.Client;
 
-public class IviItemTypeClient : AbstractIVIClient
+public class IviItemTypeClient : AbstractIVIClient, IIviSubcribable<IVIItemTypeExecutor>
 {
     private readonly IVIItemTypeExecutor? _itemTypeExecutor;
     private ItemTypeService.ItemTypeServiceClient? _client;
@@ -43,9 +43,9 @@ public class IviItemTypeClient : AbstractIVIClient
         }
     }
 
-    public async Task SubscribeToStream()
+    public async Task SubscribeToStream(IVIItemTypeExecutor itemTypeExecutor)
     {
-        if (_itemTypeExecutor is null) throw new InvalidOperationException($"Cannot subscribe, {nameof(UpdateSubscription)} is not set. ");
+        ArgumentNullException.ThrowIfNull(itemTypeExecutor, nameof(itemTypeExecutor));
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -58,9 +58,9 @@ public class IviItemTypeClient : AbstractIVIClient
                     _logger.LogDebug("ItemType update subscription for itemType id {itemTypeId}", response.GameItemTypeId);
                     try
                     {
-                        if (_itemTypeExecutor != null)
+                        if (itemTypeExecutor != null)
                         {
-                            await _itemTypeExecutor!.UpdateItemTypeAsync(response.GameItemTypeId, response.CurrentSupply, response.IssuedSupply, response.BaseUri, response.IssueTimeSpan, response.TrackingId, response.ItemTypeState);
+                            await itemTypeExecutor!.UpdateItemTypeAsync(response.GameItemTypeId, response.CurrentSupply, response.IssuedSupply, response.BaseUri, response.IssueTimeSpan, response.TrackingId, response.ItemTypeState);
                         }
 
                         await ConfirmItemTypeUpdateAsync(response.GameItemTypeId, response.TrackingId, response.ItemTypeState);
@@ -68,7 +68,7 @@ public class IviItemTypeClient : AbstractIVIClient
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"Error calling {nameof(_itemTypeExecutor.UpdateItemTypeAsync)}");
+                        _logger.LogError(ex, $"Error calling {nameof(itemTypeExecutor.UpdateItemTypeAsync)}");
                     }
                 }
                 _logger.LogInformation("ItemType update stream closed");
@@ -94,7 +94,7 @@ public class IviItemTypeClient : AbstractIVIClient
             TrackingId = trackingId
         };
 
-        await _streamClient!.ItemTypeStatusConfirmationAsync(itemTypeStatusConfirmRequest, cancellationToken: cancellationToken);
+        await _streamClient!.ItemTypeStatusConfirmationAsync(itemTypeStatusConfirmRequest);
     }
 
 

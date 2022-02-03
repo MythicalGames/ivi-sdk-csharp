@@ -21,7 +21,7 @@ using Mythical.Game.IviSdkCSharp.Model;
 
 namespace Games.Mythical.Ivi.Sdk.Client;
 
-public class IviPlayerClient : AbstractIVIClient
+public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecutor>
 {
     private readonly IVIPlayerExecutor? _playerExecutor;
     private PlayerService.PlayerServiceClient? _client;
@@ -41,9 +41,9 @@ public class IviPlayerClient : AbstractIVIClient
         }
     }
 
-    public async Task SubscribeToStream()
+    public async Task SubscribeToStream(IVIPlayerExecutor playerExecutor)
     {
-        if (_playerExecutor is null) throw new InvalidOperationException($"Cannot subscribe, {nameof(UpdateSubscription)} is not set. ");
+        ArgumentNullException.ThrowIfNull(playerExecutor, nameof(playerExecutor));
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -56,9 +56,9 @@ public class IviPlayerClient : AbstractIVIClient
                     _logger.LogDebug("Player update subscription for player id {playerId}", response.PlayerId);
                     try
                     {
-                        if (_playerExecutor != null)
+                        if (playerExecutor != null)
                         {
-                            await _playerExecutor!.UpdatePlayerAsync(response.PlayerId, response.TrackingId, response.PlayerState);
+                            await playerExecutor!.UpdatePlayerAsync(response.PlayerId, response.TrackingId, response.PlayerState);
                         }
                         await ConfirmPlayerUpdateAsync(response.PlayerId, response.TrackingId,
                             response.PlayerState);
@@ -66,7 +66,7 @@ public class IviPlayerClient : AbstractIVIClient
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"Error calling {nameof(_playerExecutor.UpdatePlayerAsync)}");
+                        _logger.LogError(ex, $"Error calling {nameof(playerExecutor.UpdatePlayerAsync)}");
                     }
                 }
                 _logger.LogInformation("Player update stream closed");
@@ -90,7 +90,7 @@ public class IviPlayerClient : AbstractIVIClient
             PlayerId = playerId,
             PlayerState = playerState,
             TrackingId = trackingId
-        }, cancellationToken: cancellationToken);
+        });
     }
 
     private PlayerService.PlayerServiceClient Client => _client ??= new PlayerService.PlayerServiceClient(Channel);

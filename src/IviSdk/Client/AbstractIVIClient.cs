@@ -14,6 +14,11 @@ using Mythical.Game.IviSdkCSharp.Mapper;
 
 namespace Games.Mythical.Ivi.Sdk.Client;
 
+public interface IIviSubcribable<T> : IDisposable
+{
+    Task SubscribeToStream(T executor);
+}
+
 public abstract class AbstractIVIClient : IDisposable
 {
     // IVI settings

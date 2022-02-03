@@ -22,7 +22,7 @@ using Metadata = Ivi.Proto.Common.Metadata;
 
 namespace Games.Mythical.Ivi.Sdk.Client;
 
-public class IviItemClient : AbstractIVIClient
+public class IviItemClient : AbstractIVIClient, IIviSubcribable<IVIItemExecutor>
 {
     private readonly IVIItemExecutor? _itemExecutor;
     private ItemService.ItemServiceClient? _client;
@@ -42,9 +42,9 @@ public class IviItemClient : AbstractIVIClient
         }
     }
 
-    public async Task SubscribeToStream()
+    public async Task SubscribeToStream(IVIItemExecutor itemExecutor)
     {
-        if (_itemExecutor is null) throw new InvalidOperationException($"Cannot subscribe, {nameof(UpdateSubscription)} is not set. ");
+        ArgumentNullException.ThrowIfNull(itemExecutor, nameof(itemExecutor));
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -57,14 +57,14 @@ public class IviItemClient : AbstractIVIClient
                     _logger.LogDebug("Item update subscription for item id {itemId}", response.GameInventoryId);
                     try
                     {
-                        _itemExecutor?.UpdateItemAsync(response.GameInventoryId, response.GameItemTypeId, response.PlayerId, response.DgoodsId, response.SerialNumber, response.MetadataUri, response.TrackingId, response.ItemState);
+                        itemExecutor?.UpdateItemAsync(response.GameInventoryId, response.GameItemTypeId, response.PlayerId, response.DgoodsId, response.SerialNumber, response.MetadataUri, response.TrackingId, response.ItemState);
                         await ConfirmItemUpdateAsync(response.GameInventoryId, response.TrackingId,
                             response.ItemState);
                         resetRetries();
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"Error calling {nameof(_itemExecutor.UpdateItemAsync)}");
+                        _logger.LogError(ex, $"Error calling {nameof(itemExecutor.UpdateItemAsync)}");
                     }
                 }
                 _logger.LogInformation("Item update stream closed");
@@ -87,7 +87,7 @@ public class IviItemClient : AbstractIVIClient
             GameInventoryId = gameInventoryId,
             ItemState = itemState,
             TrackingId = trackingId
-        }, cancellationToken: cancellationToken);
+        });
     }
 
     private ItemService.ItemServiceClient Client => _client ??= new ItemService.ItemServiceClient(Channel);

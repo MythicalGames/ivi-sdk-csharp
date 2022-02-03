@@ -19,9 +19,8 @@ using Mythical.Game.IviSdkCSharp.Model;
 
 namespace Games.Mythical.Ivi.Sdk.Client;
 
-public class IviOrderClient : AbstractIVIClient
+public class IviOrderClient : AbstractIVIClient, IIviSubcribable<IVIOrderExecutor>
 {
-    private readonly IVIOrderExecutor? _orderExecutor;
     private OrderService.OrderServiceClient? _client;
     private OrderStream.OrderStreamClient? _streamClient;
 
@@ -30,14 +29,6 @@ public class IviOrderClient : AbstractIVIClient
 
     internal IviOrderClient(IviConfiguration config, ILogger<IviOrderClient>? logger, HttpClient httpClient)
         : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
-
-    public IVIOrderExecutor UpdateSubscription
-    {
-        init
-        {
-            _orderExecutor = value;
-        }
-    }
 
     private OrderService.OrderServiceClient Client => _client ??= new(Channel);
 
@@ -117,9 +108,9 @@ public class IviOrderClient : AbstractIVIClient
         return result.Adapt<IviFinalizeOrderResponse>();
     }
 
-    public async Task SubscribeToStream()
+    public async Task SubscribeToStream(IVIOrderExecutor orderExecutor)
     {
-        if (_orderExecutor is null) throw new InvalidOperationException($"Cannot subscribe, {nameof(UpdateSubscription)} is not set. ");
+        ArgumentNullException.ThrowIfNull(orderExecutor, nameof(orderExecutor));
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -132,16 +123,16 @@ public class IviOrderClient : AbstractIVIClient
                     _logger.LogDebug($"Order update subscription for order id {response.OrderId}");
                     try
                     {
-                        if (_orderExecutor != null)
+                        if (orderExecutor != null)
                         {
-                            await _orderExecutor!.UpdateOrderAsync(response.OrderId, response.OrderState);
+                            await orderExecutor!.UpdateOrderAsync(response.OrderId, response.OrderState);
                         }
                         await _streamClient.OrderStatusConfirmationAsync(new OrderStatusConfirmRequest
                         {
                             EnvironmentId = EnvironmentId,
                             OrderId = response.OrderId,
                             OrderState = response.OrderState
-                        }, cancellationToken: cancellationToken);
+                        });
 
                         resetRetries();
                     }
