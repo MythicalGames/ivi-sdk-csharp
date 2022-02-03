@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -13,7 +14,7 @@ using Mythical.Game.IviSdkCSharp.Mapper;
 
 namespace Games.Mythical.Ivi.Sdk.Client;
 
-public abstract class AbstractIVIClient
+public abstract class AbstractIVIClient : IDisposable
 {
     // IVI settings
     protected readonly string Host;
@@ -24,11 +25,15 @@ public abstract class AbstractIVIClient
     protected readonly ILogger _logger;
     protected int KeepAlive { get; }
     protected GrpcChannel Channel;
+    private readonly CancellationTokenSource cancellationTokenSource;
+    protected readonly CancellationToken cancellationToken;
 
     static AbstractIVIClient() => MappersConfig.RegisterMappings();
 
     protected AbstractIVIClient(IviConfiguration config, Uri? address = default, GrpcChannelOptions? options = default, ILogger? logger = null)
     {
+        cancellationTokenSource = new CancellationTokenSource();
+        cancellationToken = cancellationTokenSource.Token;
         config.Validate();
         EnvironmentId = config.EnvironmentId!;
         ApiKey = config.ApiKey!;
@@ -68,24 +73,39 @@ public abstract class AbstractIVIClient
         }
     }
 
-    protected static (Func<Task> wait, Action reset) GetReconnectAwaiter(ILogger? logger)
+    protected (Func<Task> wait, Action reset) GetReconnectAwaiter(ILogger? logger)
     {
-        var (wait, reset) = new ReconnectAwaiter(logger);
+        var (wait, reset) = new ReconnectAwaiter(logger, cancellationToken);
         return (wait, reset);
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource.Cancel();
+        Channel.Dispose();
     }
 
     private class ReconnectAwaiter
     {
         private readonly ILogger? _logger;
+        private readonly CancellationToken _cancellationToken;
         private readonly Random rnd = new((int)DateTime.Now.Ticks);
         private bool _skippedDelayingFirstRetry;
         private int _requestCount = 1;
         private const int MaxPower = 15; // 2^15 = 32768 milliseconds ~ 33 seconds
 
-        public ReconnectAwaiter(ILogger? logger) => _logger = logger;
+        public ReconnectAwaiter(ILogger? logger, CancellationToken cancellationToken)
+        {
+            _logger = logger;
+            _cancellationToken = cancellationToken;
+        }
 
         private async Task WaitBeforeReconnect()
         {
+            if (_cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
             if (!_skippedDelayingFirstRetry)
             {
                 _logger?.LogInformation("Immediately reconnecting");

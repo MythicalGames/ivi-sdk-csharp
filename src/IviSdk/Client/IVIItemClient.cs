@@ -39,20 +39,20 @@ public class IviItemClient : AbstractIVIClient
         init
         {
             _itemExecutor = value;
-            Task.Run(SubscribeToStream);
         }
     }
 
-    private async Task SubscribeToStream()
+    public async Task SubscribeToStream()
     {
+        if (_itemExecutor is null) throw new InvalidOperationException($"Cannot subscribe, {nameof(UpdateSubscription)} is not set. ");
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
                 _streamClient = new ItemStream.ItemStreamClient(Channel);
-                using var call = _streamClient.ItemStatusStream(new Subscribe { EnvironmentId = EnvironmentId });
-                await foreach (var response in call.ResponseStream.ReadAllAsync())
+                using var call = _streamClient.ItemStatusStream(new Subscribe { EnvironmentId = EnvironmentId }, cancellationToken: cancellationToken);
+                await foreach (var response in call.ResponseStream.ReadAllAsync(cancellationToken))
                 {
                     _logger.LogDebug("Item update subscription for item id {itemId}", response.GameInventoryId);
                     try
@@ -87,7 +87,7 @@ public class IviItemClient : AbstractIVIClient
             GameInventoryId = gameInventoryId,
             ItemState = itemState,
             TrackingId = trackingId
-        });
+        }, cancellationToken: cancellationToken);
     }
 
     private ItemService.ItemServiceClient Client => _client ??= new ItemService.ItemServiceClient(Channel);

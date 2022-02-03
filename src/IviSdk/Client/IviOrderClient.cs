@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -35,15 +36,14 @@ public class IviOrderClient : AbstractIVIClient
         init
         {
             _orderExecutor = value;
-            Task.Run(SubscribeToStream);
         }
     }
 
     private OrderService.OrderServiceClient Client => _client ??= new(Channel);
 
-    public async Task<IviOrder?> GetOrder(string orderId)
+    public async Task<IviOrder?> GetOrder(string orderId, CancellationToken cancellationToken = default)
     {
-        var result = await TryCall(async () => await Client.GetOrderAsync(new() { EnvironmentId = EnvironmentId, OrderId = orderId }));
+        var result = await TryCall(async () => await Client.GetOrderAsync(new() { EnvironmentId = EnvironmentId, OrderId = orderId }, cancellationToken: cancellationToken));
         return result.Adapt<IviOrder>();
     }
 
@@ -54,7 +54,8 @@ public class IviOrderClient : AbstractIVIClient
         PaymentProviderId paymentProviderId,
         List<IviItemTypeOrder> purchasedItems,
         Dictionary<string, object> metadata,
-        string? requestIp)
+        string? requestIp, 
+        CancellationToken cancellationToken = default)
     {
         var result = await TryCall(async () => await Client.CreateOrderAsync(new()
         {
@@ -67,12 +68,12 @@ public class IviOrderClient : AbstractIVIClient
             PaymentProviderId = paymentProviderId,
             PurchasedItems = purchasedItems.Adapt<ItemTypeOrders>(),
             RequestIp = requestIp ?? string.Empty,
-        }));
+        }, cancellationToken: cancellationToken));
         return result.Adapt<IviOrder>();
     }
 
-    public Task<IviFinalizeOrderResponse> FinalizeBitpayOrderAsync(string orderId, string invoiceId, string fraudSessionId)
-        => FinalizeOrder(orderId, fraudSessionId, new() { Bitpay = new() { InvoiceId = invoiceId } });
+    public Task<IviFinalizeOrderResponse> FinalizeBitpayOrderAsync(string orderId, string invoiceId, string fraudSessionId, CancellationToken cancellationToken = default)
+        => FinalizeOrder(orderId, fraudSessionId, new() { Bitpay = new() { InvoiceId = invoiceId } }, cancellationToken);
 
     public Task<IviFinalizeOrderResponse> FinalizeCybersourceOrder(string orderId,
         string cardType,
@@ -80,7 +81,8 @@ public class IviOrderClient : AbstractIVIClient
         string expirationYear,
         string instrumentId,
         string paymentMethodTokenId,
-        string fraudSessionId)
+        string fraudSessionId, 
+        CancellationToken cancellationToken = default)
         => FinalizeOrder(orderId, fraudSessionId, new PaymentRequestProto
         {
             Cybersource = new()
@@ -91,9 +93,9 @@ public class IviOrderClient : AbstractIVIClient
                 InstrumentId = instrumentId,
                 PaymentMethodTokenId = paymentMethodTokenId,
             }
-        });
+        }, cancellationToken);
 
-    public Task<IviFinalizeOrderResponse> FinalizeUpholdOrder(string orderId, string upholdExternalCardId, string quoteId, string fraudSessionId)
+    public Task<IviFinalizeOrderResponse> FinalizeUpholdOrder(string orderId, string upholdExternalCardId, string quoteId, string fraudSessionId, CancellationToken cancellationToken = default)
         => FinalizeOrder(orderId, fraudSessionId, new PaymentRequestProto
         {
             Uphold = new()
@@ -101,9 +103,9 @@ public class IviOrderClient : AbstractIVIClient
                 ExternalCardId = upholdExternalCardId,
                 QuoteId = quoteId,
             }
-        });
+        }, cancellationToken);
 
-    private async Task<IviFinalizeOrderResponse> FinalizeOrder(string orderId, string fraudSessionId, PaymentRequestProto paymentRequest)
+    private async Task<IviFinalizeOrderResponse> FinalizeOrder(string orderId, string fraudSessionId, PaymentRequestProto paymentRequest, CancellationToken cancellationToken = default)
     {
         var result = await TryCall(async () => await Client.FinalizeOrderAsync(new FinalizeOrderRequest
         {
@@ -111,20 +113,21 @@ public class IviOrderClient : AbstractIVIClient
             PaymentRequestData = paymentRequest,
             FraudSessionId = fraudSessionId,
             OrderId = orderId
-        }));
+        }, cancellationToken: cancellationToken));
         return result.Adapt<IviFinalizeOrderResponse>();
     }
 
-    private async Task SubscribeToStream()
+    public async Task SubscribeToStream()
     {
+        if (_orderExecutor is null) throw new InvalidOperationException($"Cannot subscribe, {nameof(UpdateSubscription)} is not set. ");
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
                 _streamClient = new OrderStream.OrderStreamClient(Channel);
-                using var call = _streamClient.OrderStatusStream(new Subscribe { EnvironmentId = EnvironmentId });
-                await foreach (var response in call.ResponseStream.ReadAllAsync())
+                using var call = _streamClient.OrderStatusStream(new Subscribe { EnvironmentId = EnvironmentId }, cancellationToken: cancellationToken);
+                await foreach (var response in call.ResponseStream.ReadAllAsync(cancellationToken))
                 {
                     _logger.LogDebug($"Order update subscription for order id {response.OrderId}");
                     try
@@ -138,7 +141,7 @@ public class IviOrderClient : AbstractIVIClient
                             EnvironmentId = EnvironmentId,
                             OrderId = response.OrderId,
                             OrderState = response.OrderState
-                        });
+                        }, cancellationToken: cancellationToken);
 
                         resetRetries();
                     }

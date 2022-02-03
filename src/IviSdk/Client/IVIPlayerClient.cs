@@ -38,20 +38,20 @@ public class IviPlayerClient : AbstractIVIClient
         init
         {
             _playerExecutor = value;
-            Task.Run(SubscribeToStream);
         }
     }
 
-    private async Task SubscribeToStream()
+    public async Task SubscribeToStream()
     {
+        if (_playerExecutor is null) throw new InvalidOperationException($"Cannot subscribe, {nameof(UpdateSubscription)} is not set. ");
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
                 _streamClient = new PlayerStream.PlayerStreamClient(Channel);
-                using var call = _streamClient.PlayerStatusStream(new Subscribe { EnvironmentId = EnvironmentId });
-                await foreach (var response in call.ResponseStream.ReadAllAsync())
+                using var call = _streamClient.PlayerStatusStream(new Subscribe { EnvironmentId = EnvironmentId }, cancellationToken: cancellationToken);
+                await foreach (var response in call.ResponseStream.ReadAllAsync(cancellationToken))
                 {
                     _logger.LogDebug("Player update subscription for player id {playerId}", response.PlayerId);
                     try
@@ -90,12 +90,12 @@ public class IviPlayerClient : AbstractIVIClient
             PlayerId = playerId,
             PlayerState = playerState,
             TrackingId = trackingId
-        });
+        }, cancellationToken: cancellationToken);
     }
 
     private PlayerService.PlayerServiceClient Client => _client ??= new PlayerService.PlayerServiceClient(Channel);
 
-    public async Task LinkPlayerAsync(string playerId, string email, string displayName, string requestIp)
+    public async Task LinkPlayerAsync(string playerId, string email, string displayName, string requestIp, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("PlayerClient.linkPlayer called from player: {playerId}:{email}:{displayName}",
             playerId, email, displayName);
@@ -114,7 +114,7 @@ public class IviPlayerClient : AbstractIVIClient
                 request.RequestIp = requestIp;
             }
 
-            var result = await Client.LinkPlayerAsync(request);
+            var result = await Client.LinkPlayerAsync(request, cancellationToken: cancellationToken);
             if (_playerExecutor != null)
             {
                 await _playerExecutor!.UpdatePlayerAsync(playerId, result.TrackingId, result.PlayerState);
