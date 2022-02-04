@@ -17,8 +17,8 @@ public class IviPaymentClient : AbstractIVIClient
 {
     private PaymentService.PaymentServiceClient? _client;
 
-    public IviPaymentClient(IviConfiguration config, ILogger<IviPaymentClient>? logger)
-        : base(config, logger: logger) { }
+    public IviPaymentClient(IviConfiguration config, ILogger<IviPaymentClient>? logger, IChannelProvider? channelProvider = null)
+        : base(config, logger: logger, channelProvider: channelProvider) { }
 
     internal IviPaymentClient(IviConfiguration config, ILogger<IviPaymentClient>? logger, HttpClient httpClient)
         : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }

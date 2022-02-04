@@ -27,8 +27,8 @@ public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecu
     private PlayerService.PlayerServiceClient? _client;
     private PlayerStream.PlayerStreamClient? _streamClient;
 
-    public IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger)
-        : base(config, logger: logger) { }
+    public IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger, IChannelProvider? channelProvider = null)
+        : base(config, logger: logger, channelProvider: channelProvider) { }
 
     internal IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger, HttpClient httpClient)
         : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger: logger) { }

@@ -27,8 +27,8 @@ public class IviItemTypeClient : AbstractIVIClient, IIviSubcribable<IVIItemTypeE
     private ItemTypeService.ItemTypeServiceClient? _client;
     private ItemTypeStatusStream.ItemTypeStatusStreamClient? _streamClient;
 
-    public IviItemTypeClient(IviConfiguration config, ILogger<IviItemTypeClient>? logger)
-        : base(config, logger: logger) { }
+    public IviItemTypeClient(IviConfiguration config, ILogger<IviItemTypeClient>? logger, IChannelProvider? channelProvider = null)
+        : base(config, logger: logger, channelProvider: channelProvider) { }
 
     internal IviItemTypeClient(IviConfiguration config, ILogger<IviItemTypeClient>? logger, HttpClient httpClient)
         : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }

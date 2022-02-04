@@ -24,8 +24,8 @@ public class IviOrderClient : AbstractIVIClient, IIviSubcribable<IVIOrderExecuto
     private OrderService.OrderServiceClient? _client;
     private OrderStream.OrderStreamClient? _streamClient;
 
-    public IviOrderClient(IviConfiguration config, ILogger<IviOrderClient>? logger)
-        : base(config, logger: logger) { }
+    public IviOrderClient(IviConfiguration config, ILogger<IviOrderClient>? logger, IChannelProvider? channelProvider = null)
+        : base(config, logger: logger, channelProvider: channelProvider) { }
 
     internal IviOrderClient(IviConfiguration config, ILogger<IviOrderClient>? logger, HttpClient httpClient)
         : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }

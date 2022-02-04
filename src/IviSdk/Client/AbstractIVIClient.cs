@@ -35,7 +35,7 @@ public abstract class AbstractIVIClient : IDisposable
 
     static AbstractIVIClient() => MappersConfig.RegisterMappings();
 
-    protected AbstractIVIClient(IviConfiguration config, Uri? address = default, GrpcChannelOptions? options = default, ILogger? logger = null)
+    protected AbstractIVIClient(IviConfiguration config, Uri? address = default, GrpcChannelOptions? options = default, ILogger? logger = null, IChannelProvider? channelProvider = null)
     {
         cancellationTokenSource = new CancellationTokenSource();
         cancellationToken = cancellationTokenSource.Token;
@@ -45,20 +45,10 @@ public abstract class AbstractIVIClient : IDisposable
         Host = config.Host;
         Port = config.Port;
         KeepAlive = config.KeepAlive;
-        Channel = ConstructChannel(address ?? new Uri($"{Host}:{Port}"), options);
+        address ??= new Uri($"{Host}:{Port}");
+        Channel = channelProvider?.GetChannel(address, ApiKey, EnvironmentId) 
+            ?? BasicChannelProvider.CreateGrpcChannel(address, ApiKey, options);
         _logger = logger ?? NullLogger.Instance;
-    }
-
-    private GrpcChannel ConstructChannel(Uri address, GrpcChannelOptions? options = default)
-    {
-        var callCredentials = CallCredentials.FromInterceptor((_, metadata) =>
-        {
-            metadata.Add("API-KEY", ApiKey);
-            return Task.CompletedTask;
-        });
-        options ??= new();
-        options.Credentials = ChannelCredentials.Create(new SslCredentials(), callCredentials!);
-        return GrpcChannel.ForAddress(address, options);
     }
 
     protected async Task<TReturn> TryCall<TReturn>(Func<Task<TReturn>> action, [CallerMemberName] string caller = "")
@@ -87,7 +77,6 @@ public abstract class AbstractIVIClient : IDisposable
     public void Dispose()
     {
         cancellationTokenSource.Cancel();
-        Channel.Dispose();
     }
 
     private class ReconnectAwaiter
