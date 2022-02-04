@@ -6,14 +6,6 @@ using System.Linq;
 
 namespace Mythical.Game.IviSdkCSharp;
 
-public static class IServiceCollectionExtensions
-{
-    public static void AddIviClient()
-    {
-
-    }
-}
-
 public static class GrpcExtensions
 {
     internal static decimal ToDecimal(this string value)
