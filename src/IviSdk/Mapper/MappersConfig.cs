@@ -70,6 +70,9 @@ public class MappersConfig
             .MapWith(src => src.ToUnixTimeMilliseconds())
             .Compile();
 
+        TypeAdapterConfig<ulong, DateTimeOffset>.NewConfig()
+            .MapWith(src => DateTimeOffset.FromUnixTimeMilliseconds((long)src))
+            .Compile();
 
         TypeAdapterConfig<IviItemTypeOrder, ItemTypeOrder>.NewConfig()
             .AfterMapping((src, dest) =>
