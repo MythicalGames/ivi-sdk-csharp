@@ -13,7 +13,9 @@ jobs:
       - name: Checkout repository and submodules
         uses: actions/checkout@v2
         with:
-          submodules: 'true'
+          lfs: true	
+          submodules: recursive	
+          token: ${{ secrets.BUILDBOT_PERSONAL_TOKEN }}
 
       - name: Setup .NET Core SDK 6.0.x
         uses: actions/setup-dotnet@v1.8.2
