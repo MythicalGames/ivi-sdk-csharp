@@ -22,14 +22,14 @@ using Metadata = Ivi.Proto.Common.Metadata;
 
 namespace Games.Mythical.Ivi.Sdk.Client;
 
-public class IviItemClient : AbstractIVIClient
+public class IviItemClient : AbstractIVIClient, IIviSubcribable<IVIItemExecutor>
 {
     private readonly IVIItemExecutor? _itemExecutor;
     private ItemService.ItemServiceClient? _client;
     private ItemStream.ItemStreamClient? _streamClient;
 
-    public IviItemClient(IviConfiguration config, ILogger<IviItemClient>? logger)
-        : base(config, logger: logger) { }
+    public IviItemClient(IviConfiguration config, ILogger<IviItemClient>? logger, IChannelProvider? channelProvider = null)
+        : base(config, logger: logger, channelProvider: channelProvider) { }
 
     internal IviItemClient(IviConfiguration config, ILogger<IviItemClient>? logger, HttpClient httpClient)
         : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
@@ -39,32 +39,32 @@ public class IviItemClient : AbstractIVIClient
         init
         {
             _itemExecutor = value;
-            Task.Run(SubscribeToStream);
         }
     }
 
-    private async Task SubscribeToStream()
+    public async Task SubscribeToStream(IVIItemExecutor itemExecutor)
     {
+        ArgumentNullException.ThrowIfNull(itemExecutor, nameof(itemExecutor));
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
                 _streamClient = new ItemStream.ItemStreamClient(Channel);
-                using var call = _streamClient.ItemStatusStream(new Subscribe { EnvironmentId = EnvironmentId });
-                await foreach (var response in call.ResponseStream.ReadAllAsync())
+                using var call = _streamClient.ItemStatusStream(new Subscribe { EnvironmentId = EnvironmentId }, cancellationToken: cancellationToken);
+                await foreach (var response in call.ResponseStream.ReadAllAsync(cancellationToken))
                 {
                     _logger.LogDebug("Item update subscription for item id {itemId}", response.GameInventoryId);
                     try
                     {
-                        _itemExecutor?.UpdateItemAsync(response.GameInventoryId, response.GameItemTypeId, response.PlayerId, response.DgoodsId, response.SerialNumber, response.MetadataUri, response.TrackingId, response.ItemState);
+                        itemExecutor?.UpdateItemAsync(response.GameInventoryId, response.GameItemTypeId, response.PlayerId, response.DgoodsId, response.SerialNumber, response.MetadataUri, response.TrackingId, response.ItemState);
                         await ConfirmItemUpdateAsync(response.GameInventoryId, response.TrackingId,
                             response.ItemState);
                         resetRetries();
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"Error calling {nameof(_itemExecutor.UpdateItemAsync)}");
+                        _logger.LogError(ex, $"Error calling {nameof(itemExecutor.UpdateItemAsync)}");
                     }
                 }
                 _logger.LogInformation("Item update stream closed");

@@ -1,13 +1,18 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31515.178
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IviSdkCsharp", "IviSdk\IviSdkCsharp.csproj", "{A0D8390E-C81F-4BB8-85A3-4F9B5F86CD9B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IviSdkCsharp.Tests", "IviSdkCsharp.Tests\IviSdkCsharp.Tests.csproj", "{5A504092-DC22-4926-9D38-12BCA9B9CC39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IviSdkCsharp.ModelsGeneration", "IviSdkCsharp.ModelsGeneration\IviSdkCsharp.ModelsGeneration.csproj", "{2A1D35F6-6E49-43B5-9B37-B253F0B71E02}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IviSdkCsharp.ModelsGeneration", "IviSdkCsharp.ModelsGeneration\IviSdkCsharp.ModelsGeneration.csproj", "{2A1D35F6-6E49-43B5-9B37-B253F0B71E02}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F868DFAF-0EDD-4B69-AB80-1C03C10F7FB7}"
+	ProjectSection(SolutionItems) = preProject
+		..\.gitmodules = ..\.gitmodules
+		..\README.md = ..\README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

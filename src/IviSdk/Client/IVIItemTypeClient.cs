@@ -21,14 +21,14 @@ using Metadata = Ivi.Proto.Common.Metadata;
 
 namespace Games.Mythical.Ivi.Sdk.Client;
 
-public class IviItemTypeClient : AbstractIVIClient
+public class IviItemTypeClient : AbstractIVIClient, IIviSubcribable<IVIItemTypeExecutor>
 {
     private readonly IVIItemTypeExecutor? _itemTypeExecutor;
     private ItemTypeService.ItemTypeServiceClient? _client;
     private ItemTypeStatusStream.ItemTypeStatusStreamClient? _streamClient;
 
-    public IviItemTypeClient(IviConfiguration config, ILogger<IviItemTypeClient>? logger)
-        : base(config, logger: logger) { }
+    public IviItemTypeClient(IviConfiguration config, ILogger<IviItemTypeClient>? logger, IChannelProvider? channelProvider = null)
+        : base(config, logger: logger, channelProvider: channelProvider) { }
 
     internal IviItemTypeClient(IviConfiguration config, ILogger<IviItemTypeClient>? logger, HttpClient httpClient)
         : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
@@ -40,27 +40,27 @@ public class IviItemTypeClient : AbstractIVIClient
         init
         {
             _itemTypeExecutor = value;
-            Task.Run(SubscribeToStream);
         }
     }
 
-    private async Task SubscribeToStream()
+    public async Task SubscribeToStream(IVIItemTypeExecutor itemTypeExecutor)
     {
+        ArgumentNullException.ThrowIfNull(itemTypeExecutor, nameof(itemTypeExecutor));
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
                 _streamClient = new ItemTypeStatusStream.ItemTypeStatusStreamClient(Channel);
-                using var call = _streamClient.ItemTypeStatusStream(new Subscribe { EnvironmentId = EnvironmentId });
-                await foreach (var response in call.ResponseStream.ReadAllAsync())
+                using var call = _streamClient.ItemTypeStatusStream(new Subscribe { EnvironmentId = EnvironmentId }, cancellationToken: cancellationToken);
+                await foreach (var response in call.ResponseStream.ReadAllAsync(cancellationToken))
                 {
                     _logger.LogDebug("ItemType update subscription for itemType id {itemTypeId}", response.GameItemTypeId);
                     try
                     {
-                        if (_itemTypeExecutor != null)
+                        if (itemTypeExecutor != null)
                         {
-                            await _itemTypeExecutor!.UpdateItemTypeAsync(response.GameItemTypeId, response.CurrentSupply, response.IssuedSupply, response.BaseUri, response.IssueTimeSpan, response.TrackingId, response.ItemTypeState);
+                            await itemTypeExecutor!.UpdateItemTypeAsync(response.GameItemTypeId, response.CurrentSupply, response.IssuedSupply, response.BaseUri, response.IssueTimeSpan, response.TrackingId, response.ItemTypeState);
                         }
 
                         await ConfirmItemTypeUpdateAsync(response.GameItemTypeId, response.TrackingId, response.ItemTypeState);
@@ -68,7 +68,7 @@ public class IviItemTypeClient : AbstractIVIClient
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"Error calling {nameof(_itemTypeExecutor.UpdateItemTypeAsync)}");
+                        _logger.LogError(ex, $"Error calling {nameof(itemTypeExecutor.UpdateItemTypeAsync)}");
                     }
                 }
                 _logger.LogInformation("ItemType update stream closed");

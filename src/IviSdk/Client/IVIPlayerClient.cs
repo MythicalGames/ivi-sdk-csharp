@@ -21,14 +21,14 @@ using Mythical.Game.IviSdkCSharp.Model;
 
 namespace Games.Mythical.Ivi.Sdk.Client;
 
-public class IviPlayerClient : AbstractIVIClient
+public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecutor>
 {
     private readonly IVIPlayerExecutor? _playerExecutor;
     private PlayerService.PlayerServiceClient? _client;
     private PlayerStream.PlayerStreamClient? _streamClient;
 
-    public IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger)
-        : base(config, logger: logger) { }
+    public IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger, IChannelProvider? channelProvider = null)
+        : base(config, logger: logger, channelProvider: channelProvider) { }
 
     internal IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger, HttpClient httpClient)
         : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger: logger) { }
@@ -38,27 +38,27 @@ public class IviPlayerClient : AbstractIVIClient
         init
         {
             _playerExecutor = value;
-            Task.Run(SubscribeToStream);
         }
     }
 
-    private async Task SubscribeToStream()
+    public async Task SubscribeToStream(IVIPlayerExecutor playerExecutor)
     {
+        ArgumentNullException.ThrowIfNull(playerExecutor, nameof(playerExecutor));
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
                 _streamClient = new PlayerStream.PlayerStreamClient(Channel);
-                using var call = _streamClient.PlayerStatusStream(new Subscribe { EnvironmentId = EnvironmentId });
-                await foreach (var response in call.ResponseStream.ReadAllAsync())
+                using var call = _streamClient.PlayerStatusStream(new Subscribe { EnvironmentId = EnvironmentId }, cancellationToken: cancellationToken);
+                await foreach (var response in call.ResponseStream.ReadAllAsync(cancellationToken))
                 {
                     _logger.LogDebug("Player update subscription for player id {playerId}", response.PlayerId);
                     try
                     {
-                        if (_playerExecutor != null)
+                        if (playerExecutor != null)
                         {
-                            await _playerExecutor!.UpdatePlayerAsync(response.PlayerId, response.TrackingId, response.PlayerState);
+                            await playerExecutor!.UpdatePlayerAsync(response.PlayerId, response.TrackingId, response.PlayerState);
                         }
                         await ConfirmPlayerUpdateAsync(response.PlayerId, response.TrackingId,
                             response.PlayerState);
@@ -66,7 +66,7 @@ public class IviPlayerClient : AbstractIVIClient
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"Error calling {nameof(_playerExecutor.UpdatePlayerAsync)}");
+                        _logger.LogError(ex, $"Error calling {nameof(playerExecutor.UpdatePlayerAsync)}");
                     }
                 }
                 _logger.LogInformation("Player update stream closed");
@@ -95,7 +95,7 @@ public class IviPlayerClient : AbstractIVIClient
 
     private PlayerService.PlayerServiceClient Client => _client ??= new PlayerService.PlayerServiceClient(Channel);
 
-    public async Task LinkPlayerAsync(string playerId, string email, string displayName, string requestIp)
+    public async Task LinkPlayerAsync(string playerId, string email, string displayName, string requestIp, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("PlayerClient.linkPlayer called from player: {playerId}:{email}:{displayName}",
             playerId, email, displayName);
@@ -114,7 +114,7 @@ public class IviPlayerClient : AbstractIVIClient
                 request.RequestIp = requestIp;
             }
 
-            var result = await Client.LinkPlayerAsync(request);
+            var result = await Client.LinkPlayerAsync(request, cancellationToken: cancellationToken);
             if (_playerExecutor != null)
             {
                 await _playerExecutor!.UpdatePlayerAsync(playerId, result.TrackingId, result.PlayerState);

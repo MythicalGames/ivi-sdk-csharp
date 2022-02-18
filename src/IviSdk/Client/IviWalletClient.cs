@@ -14,8 +14,8 @@ public class IviWalletClient : AbstractIVIClient
 {
     private WalletService.WalletServiceClient? _client;
 
-    public IviWalletClient(IviConfiguration config, ILogger<IviWalletClient>? logger = null)
-        : base(config, logger: logger) { }
+    public IviWalletClient(IviConfiguration config, ILogger<IviWalletClient>? logger = null, IChannelProvider? channelProvider = null)
+        : base(config, logger: logger, channelProvider: channelProvider) { }
 
     internal IviWalletClient(IviConfiguration config, ILogger<IviWalletClient>? logger, HttpClient httpClient)
         : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger) { }
