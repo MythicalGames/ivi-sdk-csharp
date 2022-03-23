@@ -57,3 +57,19 @@ public class BasicChannelProvider : IChannelProvider
         return GrpcChannel.ForAddress(address, options);
     }
 }
+
+public class InsecureChannelProvider : IChannelProvider, IDisposable
+{
+    public GrpcChannel GetChannel(Uri address, string apiKey, string environment)
+    {
+        var options = new GrpcChannelOptions()
+        {
+            Credentials = ChannelCredentials.Insecure
+        };
+
+        return GrpcChannel.ForAddress(address, options);
+    }
+    public void Dispose()
+    {
+    }
+}
