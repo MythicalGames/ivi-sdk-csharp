@@ -25,6 +25,10 @@ properties {
     $sdk_assembly_name = "Mythical.Game.IviSdkCSharp"
     $sdk_dll_path = "$sdk_output_path/$($sdk_assembly_name).dll"
     $sdk_nuget_package_output_dir = $packages_root_dir
+
+    $ivifakeserver_csproj_path = "$solution_dir/IviFakeServer/IviFakeServer.csproj"
+    $ivifakeserver_output_path = "$solution_dir/IviFakeServer/bin/$($global:project_configuration)/net6.0"
+    $ivifakeserver_assembly_name = "Mythical.Game.IviFakeServer"
      
     $now = Get-Date
     $logFileNameSegment = $now.ToString("yyyy_MM_dd_HH_mm_ss")

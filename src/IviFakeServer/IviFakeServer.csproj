@@ -29,6 +29,10 @@
     <ItemGroup>      
       <Protobuf Include="../IviSdk/ivi-sdk-proto/**/*.proto" ProtoRoot="../IviSdk/ivi-sdk-proto" CompileOutputs="TRUE" GrpcServices="Server" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="..\..\SharedConfig\CommonAssemblyInfo.cs" Link="CommonAssemblyInfo.cs" />
+    </ItemGroup>
   
   <Target Name="PackAndPublishNuget" AfterTargets="Build" Condition="'$(Configuration)'=='Debug'">
     <Exec Command="powershell.exe -noprofile -command &quot;&amp; {..\..\_build\PackAndPublishNuget.ps1 -configuration '$(Configuration)' -output_path '$(OutputPath)' -csproj_path '$(MSBuildProjectFullPath)' -assembly_name '$(AssemblyName)'}&quot;" />
