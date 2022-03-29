@@ -107,8 +107,8 @@ task PublishNugetPackages {
     Write-Host 
 
     if ($on_build_server) {
-        dotnet nuget push $sdk_nuget_package_path -s "github" --api-key $apiKey
-        dotnet nuget push $ivifakeserver_nuget_package_path -s "github" --api-key $apiKey
+        dotnet nuget push $sdk_nuget_package_path -s "github" --api-key $apiKey --skip-duplicate
+        dotnet nuget push $ivifakeserver_nuget_package_path -s "github" --api-key $apiKey --skip-duplicate
     }
     else{
         $local_nuget = [System.Environment]::GetEnvironmentVariable('MYTHICAL_LOCAL_NUGET')
