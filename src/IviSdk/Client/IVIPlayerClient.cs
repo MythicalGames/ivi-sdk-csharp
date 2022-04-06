@@ -73,6 +73,8 @@ public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecu
             }
             catch (Exception ex)
             {
+                _logger.LogWarning("Player update subscription error in IVI, EnvId: {EnvironmentId}, {ApiKey}, {Host}", 
+                    EnvironmentId, ApiKey?.Length > 0 ? HideInfo(ApiKey) : "none", Host);
                 _logger.LogError(ex, "Player update subscription error");
             }
             finally
@@ -81,6 +83,15 @@ public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecu
             }
         }
     }
+
+    private static string HideInfo(string value)
+        => string.Create(value.Length, value, (sc, v) =>
+        {
+            // only keep 30% of start of string (rounded down)
+            var prefixLength = v.Length * 30 / 100;
+            v.AsSpan(0, prefixLength).CopyTo(sc);
+            sc[prefixLength..].Fill('*');
+        });
 
     private async Task ConfirmPlayerUpdateAsync(string playerId, string trackingId, PlayerState playerState)
     {
