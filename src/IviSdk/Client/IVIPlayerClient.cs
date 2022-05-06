@@ -106,7 +106,7 @@ public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecu
 
     private PlayerService.PlayerServiceClient Client => _client ??= new PlayerService.PlayerServiceClient(Channel);
 
-    public async Task LinkPlayerAsync(string playerId, string email, string displayName, string requestIp, CancellationToken cancellationToken = default)
+    public async Task LinkPlayerAsync(string playerId, string oAuthId, string email, string displayName, string requestIp, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("PlayerClient.linkPlayer called from player: {playerId}:{email}:{displayName}",
             playerId, email, displayName);
@@ -116,6 +116,7 @@ public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecu
             {
                 EnvironmentId = EnvironmentId,
                 PlayerId = playerId,
+                OauthId = oAuthId,
                 Email = email,
                 DisplayName = displayName
             };
