@@ -87,7 +87,7 @@ public class PlayerClientTests
         };
         expectedCall = new MockPlayerExecutor.UpdatePlayerCall(PlayerIdExisting, expectedIpAddress, PlayerState.PendingLinked);
 
-        await playerClient.LinkPlayerAsync(PlayerIdExisting, "test@example.com", "Ninja", passedIpAddress);
+        await playerClient.LinkPlayerAsync(PlayerIdExisting, PlayerIdExisting, "test@example.com", "Ninja", passedIpAddress);
 
         executor.LastCall.ShouldBe(expectedCall);
     }
@@ -98,6 +98,6 @@ public class PlayerClientTests
         var playerClient = new IviPlayerClient(GrpcTestServerFixture.Config, null, _fixture.Client);
 
         Should.Throw<IVIException>(async () =>
-            await playerClient.LinkPlayerAsync(PlayerIdThrow, "test@example.com", "Ninja", "192.168.1.1"));
+            await playerClient.LinkPlayerAsync(PlayerIdThrow, PlayerIdThrow, "test@example.com", "Ninja", "192.168.1.1"));
     }
 }
