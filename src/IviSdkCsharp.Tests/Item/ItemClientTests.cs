@@ -10,6 +10,7 @@ using Mythical.Game.IviSdkCSharp.Model;
 using Shouldly;
 using Xunit;
 using static IviSdkCsharp.Tests.Item.Services.FakeItemService;
+#pragma warning disable CS4014 // for not awaiting SubscribeToStream calls - alternative is Task.Run(...SubscribeToStream...)
 
 namespace IviSdkCsharp.Tests.Item;
 
@@ -40,7 +41,7 @@ public class ItemClientTests
     }
 
     [Fact]
-    public async Task GetItemAsync_gRPCServiceThrows_ThrowsIVIException()
+    public void GetItemAsync_gRPCServiceThrows_ThrowsIVIException()
     {
         using var itemClient = new IviItemClient(GrpcTestServerFixture.Config, null, _fixture.Client);
         Should.Throw<IVIException>(async () => await itemClient.GetItemAsync(GameInventoryIdThrow));
@@ -83,7 +84,7 @@ public class ItemClientTests
     }
 
     [Fact]
-    public async Task BurnItemAsync_NotFound()
+    public void BurnItemAsync_NotFound()
     {
         using var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
 
@@ -114,7 +115,7 @@ public class ItemClientTests
     }
 
     [Fact]
-    public async Task TransferItemAsync_NotFound()
+    public void TransferItemAsync_NotFound()
     {
         using var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
 
@@ -215,8 +216,11 @@ public class ItemClientTests
             Description = "description of update list",
             Image = "justanotherimgurl"
         };
-        List<IviMetadataUpdate>? updateList = new() { new IviMetadataUpdate(GameInventoryIdListed, testMetadata) };
-        updateList.Add(new IviMetadataUpdate(GameInventoryIdIssueId, testMetadata));
+        List<IviMetadataUpdate> updateList = new()
+        {
+            new IviMetadataUpdate(GameInventoryIdListed, testMetadata),
+            new IviMetadataUpdate(GameInventoryIdIssueId, testMetadata)
+        };
         using var itemClient = new IviItemClient(GrpcTestServerFixture.Config, NullLogger<IviItemClient>.Instance, _fixture.Client);
 
         // This is asserted inside the service to check if the request is passing the correct

@@ -8,6 +8,7 @@ using Mythical.Game.IviSdkCSharp.Model;
 using Shouldly;
 using Xunit;
 using static IviSdkCsharp.Tests.ItemType.Services.FakeItemTypeService;
+#pragma warning disable CS4014 // for not awaiting SubscribeToStream calls - alternative is Task.Run(...SubscribeToStream...)
 
 
 namespace IviSdkCsharp.Tests;

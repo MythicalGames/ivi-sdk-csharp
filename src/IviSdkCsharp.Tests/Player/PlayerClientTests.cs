@@ -82,7 +82,10 @@ public class PlayerClientTests
     {
         var executor = new MockPlayerExecutor();
         using var playerClient = new IviPlayerClient(GrpcTestServerFixture.Config, null, _fixture.Client);
+
+#pragma warning disable CS4014 // for not awaiting SubscribeToStream calls - alternative is Task.Run(...SubscribeToStream...)
         playerClient.SubscribeToStream(executor);
+#pragma warning restore CS4014
         expectedCall = new MockPlayerExecutor.UpdatePlayerCall(PlayerIdExisting, expectedIpAddress, PlayerState.PendingLinked);
 
         await playerClient.LinkPlayerAsync(PlayerIdExisting, PlayerIdExisting, "test@example.com", "Ninja", passedIpAddress);
