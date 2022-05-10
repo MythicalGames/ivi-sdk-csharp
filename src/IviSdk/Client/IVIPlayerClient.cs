@@ -23,7 +23,7 @@ namespace Games.Mythical.Ivi.Sdk.Client;
 
 public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecutor>
 {
-    private readonly IVIPlayerExecutor? _playerExecutor;
+    private IVIPlayerExecutor? _playerExecutor;
     private PlayerService.PlayerServiceClient? _client;
     private PlayerStream.PlayerStreamClient? _streamClient;
 
@@ -33,17 +33,10 @@ public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecu
     internal IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger, HttpClient httpClient)
         : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger: logger) { }
 
-    public IVIPlayerExecutor UpdateSubscription
-    {
-        init
-        {
-            _playerExecutor = value;
-        }
-    }
-
     public async Task SubscribeToStream(IVIPlayerExecutor playerExecutor)
     {
         ArgumentNullException.ThrowIfNull(playerExecutor, nameof(playerExecutor));
+        _playerExecutor = playerExecutor;
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
         while (!cancellationToken.IsCancellationRequested)
         {

@@ -24,7 +24,7 @@ public class OrderClientTests
     [Fact]
     public async Task CreateOrder_CanMapInputToRequestType()
     {
-        var client = CreateClient();
+        using var client = CreateClient();
         CreateOrderRequest request = null;
         var mock = new Mock<FakeOrderService>();
         mock.Setup(s => s.CreateOrder(It.IsAny<CreateOrderRequest>(), It.IsAny<ServerCallContext>()))
@@ -174,7 +174,7 @@ public class OrderClientTests
         mock.Setup(s => s.CreateOrder(It.IsAny<CreateOrderRequest>(), It.IsAny<ServerCallContext>()))
             .Returns(() => Task.FromResult(actualOrder));
 
-        var client = CreateClient();
+        using var client = CreateClient();
         FakeOrderService.UseMock(mock.Object);
 
         var expectedOrder = new IviOrder
@@ -245,7 +245,7 @@ public class OrderClientTests
     [Fact]
     public async Task GetOrder_CanMapToRequest()
     {
-        var client = CreateClient();
+        using var client = CreateClient();
         var mock = new Mock<FakeOrderService>();
         GetOrderRequest request = null;
         mock.Setup(f => f.GetOrder(It.IsAny<GetOrderRequest>(), It.IsAny<ServerCallContext>()))
@@ -268,7 +268,7 @@ public class OrderClientTests
                 OrderId = "asdf"
             }));
 
-        var client = CreateClient();
+        using var client = CreateClient();
         FakeOrderService.UseMock(mock.Object);
 
         var result = await client.GetOrder("23");
@@ -285,7 +285,7 @@ public class OrderClientTests
             .Returns(() => Task.FromResult(new FinalizeOrderAsyncResponse { }));
         FakeOrderService.UseMock(mock.Object);
 
-        var client = CreateClient();
+        using var client = CreateClient();
         await client.FinalizeBitpayOrderAsync("order1", "inv1", "sess1");
 
         request.EnvironmentId.ShouldBe(GrpcTestServerFixture.Config.EnvironmentId);
@@ -322,7 +322,7 @@ public class OrderClientTests
             .Returns(() => Task.FromResult(actualResp));
         FakeOrderService.UseMock(mock.Object);
 
-        var client = CreateClient();
+        using var client = CreateClient();
         var resultResponse = await client.FinalizeBitpayOrderAsync("order1", "inv1", "sess1");
 
         var expectedResp = new IviFinalizeOrderResponse
