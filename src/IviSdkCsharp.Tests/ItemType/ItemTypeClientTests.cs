@@ -8,6 +8,7 @@ using Mythical.Game.IviSdkCSharp.Model;
 using Shouldly;
 using Xunit;
 using static IviSdkCsharp.Tests.ItemType.Services.FakeItemTypeService;
+#pragma warning disable CS4014 // for not awaiting SubscribeToStream calls - alternative is Task.Run(...SubscribeToStream...)
 
 
 namespace IviSdkCsharp.Tests;
@@ -22,7 +23,7 @@ public class ItemTypeClientTests
     [Fact]
     public async Task GetItemTypeAsync_ValidRequest_ReturnsRequestedItemType()
     {
-        var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
+        using var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
 
         var result = await itemTypeClient.GetItemTypesAsync(new List<string> { GameItemTypeIdExisting });
 
@@ -33,7 +34,7 @@ public class ItemTypeClientTests
     [Fact]
     public async Task GetItemTypeAsync_NotFound_ReturnsNull()
     {
-        var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
+        using var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
 
         var result = await itemTypeClient.GetItemTypeAsync(GameItemTypeIdNotFound);
 
@@ -43,7 +44,7 @@ public class ItemTypeClientTests
     [Fact]
     public void GetItemTypeAsync_gRPCServiceThrows_ThrowsIVIException()
     {
-        var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
+        using var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
 
         Should.Throw<IVIException>(async () => await itemTypeClient.GetItemTypeAsync(GameItemTypeIdThrow));
     }
@@ -51,7 +52,7 @@ public class ItemTypeClientTests
     [Fact]
     public async Task GetItemTypesAsync_ValidRequest_ReturnsRequestedItemTypes()
     {
-        var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
+        using var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, NullLogger<IviItemTypeClient>.Instance, _fixture.Client);
 
         var result = await itemTypeClient.GetItemTypesAsync();
 
@@ -61,7 +62,7 @@ public class ItemTypeClientTests
     [Fact]
     public void GetItemTypesAsync_gRPCServiceThrows_ThrowsIVIException()
     {
-        var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client);
+        using var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client);
 
         Should.Throw<IVIException>(async () => await itemTypeClient.GetItemTypesAsync(new List<string>() { GameItemTypeIdThrow }));
     }
@@ -70,10 +71,8 @@ public class ItemTypeClientTests
     public async Task CreateItemTypeAsync_ValidInput_CreatesItemType()
     {
         var executor = new MockItemTypeExecutor();
-        var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client)
-        {
-            UpdateSubscription = executor
-        };
+        using var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client);
+        itemTypeClient.SubscribeToStream(executor);
         var expectedCall = new MockItemTypeExecutor.UpdateItemTypeCall(GameItemTypeIdNew,
             $"Traking_{GameItemTypeIdNew}",
             ItemTypeState.PendingCreate);
@@ -91,10 +90,8 @@ public class ItemTypeClientTests
     public async Task FreezeItemTypeAsync_ValidInput_FreezesItemType()
     {
         var executor = new MockItemTypeExecutor();
-        var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client)
-        {
-            UpdateSubscription = executor
-        };
+        using var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client);
+        itemTypeClient.SubscribeToStream(executor);
         var expectedCall = new MockItemTypeExecutor.UpdateItemTypeCall(
             GameItemTypeIdFreeze,
             $"Tracking_{GameItemTypeIdFreeze}",
@@ -108,7 +105,7 @@ public class ItemTypeClientTests
     [Fact]
     public async Task UpdateItemTypeMetadataAsync_ValidInput_FreezesItemType()
     {
-        var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client);
+        using var itemTypeClient = new IviItemTypeClient(GrpcTestServerFixture.Config, null, _fixture.Client);
         await itemTypeClient.UpdateItemTypeMetadataAsync(GameItemTypeIdExisting, null);
     }
 }

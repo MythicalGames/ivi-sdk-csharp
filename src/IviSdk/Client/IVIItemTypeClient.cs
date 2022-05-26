@@ -23,7 +23,7 @@ namespace Games.Mythical.Ivi.Sdk.Client;
 
 public class IviItemTypeClient : AbstractIVIClient, IIviSubcribable<IVIItemTypeExecutor>
 {
-    private readonly IVIItemTypeExecutor? _itemTypeExecutor;
+    private IVIItemTypeExecutor? _itemTypeExecutor;
     private ItemTypeService.ItemTypeServiceClient? _client;
     private ItemTypeStatusStream.ItemTypeStatusStreamClient? _streamClient;
 
@@ -35,16 +35,9 @@ public class IviItemTypeClient : AbstractIVIClient, IIviSubcribable<IVIItemTypeE
 
     private ItemTypeService.ItemTypeServiceClient Client => _client ??= new ItemTypeService.ItemTypeServiceClient(Channel);
 
-    public IVIItemTypeExecutor UpdateSubscription
-    {
-        init
-        {
-            _itemTypeExecutor = value;
-        }
-    }
-
     public async Task SubscribeToStream(IVIItemTypeExecutor itemTypeExecutor)
     {
+        _itemTypeExecutor = itemTypeExecutor;
         ArgumentNullException.ThrowIfNull(itemTypeExecutor, nameof(itemTypeExecutor));
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
         while (!cancellationToken.IsCancellationRequested)

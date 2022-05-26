@@ -23,7 +23,7 @@ namespace Games.Mythical.Ivi.Sdk.Client;
 
 public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecutor>
 {
-    private readonly IVIPlayerExecutor? _playerExecutor;
+    private IVIPlayerExecutor? _playerExecutor;
     private PlayerService.PlayerServiceClient? _client;
     private PlayerStream.PlayerStreamClient? _streamClient;
 
@@ -33,17 +33,10 @@ public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecu
     internal IviPlayerClient(IviConfiguration config, ILogger<IviPlayerClient>? logger, HttpClient httpClient)
         : base(config, httpClient.BaseAddress!, new GrpcChannelOptions { HttpClient = httpClient }, logger: logger) { }
 
-    public IVIPlayerExecutor UpdateSubscription
-    {
-        init
-        {
-            _playerExecutor = value;
-        }
-    }
-
     public async Task SubscribeToStream(IVIPlayerExecutor playerExecutor)
     {
         ArgumentNullException.ThrowIfNull(playerExecutor, nameof(playerExecutor));
+        _playerExecutor = playerExecutor;
         var (waitBeforeRetry, resetRetries) = GetReconnectAwaiter(_logger);
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -73,6 +66,8 @@ public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecu
             }
             catch (Exception ex)
             {
+                _logger.LogWarning("Player update subscription error in IVI, EnvId: {EnvironmentId}, {ApiKey}, {Host}", 
+                    EnvironmentId, ApiKey?.Length > 0 ? HideInfo(ApiKey) : "none", Host);
                 _logger.LogError(ex, "Player update subscription error");
             }
             finally
@@ -81,6 +76,15 @@ public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecu
             }
         }
     }
+
+    private static string HideInfo(string value)
+        => string.Create(value.Length, value, (sc, v) =>
+        {
+            // only keep 30% of start of string (rounded down)
+            var prefixLength = v.Length * 30 / 100;
+            v.AsSpan(0, prefixLength).CopyTo(sc);
+            sc[prefixLength..].Fill('*');
+        });
 
     private async Task ConfirmPlayerUpdateAsync(string playerId, string trackingId, PlayerState playerState)
     {
@@ -95,7 +99,7 @@ public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecu
 
     private PlayerService.PlayerServiceClient Client => _client ??= new PlayerService.PlayerServiceClient(Channel);
 
-    public async Task LinkPlayerAsync(string playerId, string email, string displayName, string requestIp, CancellationToken cancellationToken = default)
+    public async Task LinkPlayerAsync(string playerId, string oAuthId, string email, string displayName, string requestIp, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("PlayerClient.linkPlayer called from player: {playerId}:{email}:{displayName}",
             playerId, email, displayName);
@@ -105,6 +109,7 @@ public class IviPlayerClient : AbstractIVIClient, IIviSubcribable<IVIPlayerExecu
             {
                 EnvironmentId = EnvironmentId,
                 PlayerId = playerId,
+                OauthId = oAuthId,
                 Email = email,
                 DisplayName = displayName
             };

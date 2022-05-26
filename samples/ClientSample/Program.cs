@@ -6,6 +6,7 @@ using Ivi.Proto.Common.Sort;
 using Microsoft.Extensions.Logging;
 using Mythical.Game.IviSdkCSharp.Mapper;
 using Mythical.Game.IviSdkCSharp.Model;
+#pragma warning disable CS4014 // for not awaiting SubscribeToStream calls - alternative is Task.Run(...SubscribeToStream...)
 
 namespace ClientSample;
 
@@ -15,21 +16,32 @@ class Program
     {
         Setup setup = new ();
         MappersConfig.RegisterMappings();
-
-        await PlayerClient_Usage(setup);
-        await ItemTypeClient_Usage(setup);
-        await ItemClient_Usage(setup);
+        await TryRun(async () => await PlayerClient_Usage(setup), setup);
+        await TryRun(async () => await ItemTypeClient_Usage(setup), setup);
+        await TryRun(async () => await ItemClient_Usage(setup), setup);
         Console.ReadLine();
+    }
+
+    private static async Task TryRun(Func<Task> action, Setup setup)
+    {
+        try
+        {
+            await action();
+        }
+        catch (Exception ex)
+        {
+            var logger = setup.CreateLogger<Program>();
+            logger.LogError(ex, "Failed to run usage example");
+        }
     }
 
     private static async Task ItemClient_Usage(Setup setup)
     {
         var logger = setup.CreateLogger<IviItemClient>();
 
-        var itemClient = new IviItemClient(setup.IviConfig, logger)
-        {
-            UpdateSubscription = new LoggingItemUpdateSubscription(logger)
-        };
+        using var itemClient = new IviItemClient(setup.IviConfig, logger);
+        itemClient.SubscribeToStream(new LoggingItemUpdateSubscription(logger));
+        
 
         var items = await itemClient.GetItemsAsync(DateTimeOffset.MinValue, 4, SortOrder.Asc);
         logger.LogInformation("GetItemsAsync: {@Items}", items);
@@ -39,10 +51,8 @@ class Program
     {
         var logger = setup.CreateLogger<IviPlayerClient>();
 
-        var playerClient = new IviPlayerClient(setup.IviConfig, logger)
-        {
-            UpdateSubscription = new LoggingPlayerUpdateSubscription(logger)
-        };
+        using var playerClient = new IviPlayerClient(setup.IviConfig, logger);
+        playerClient.SubscribeToStream(new LoggingPlayerUpdateSubscription(logger));
         var players = await playerClient.GetPlayersAsync(DateTimeOffset.MinValue, 3, IviSortOrder.Desc);
         logger.LogInformation("GetPlayersAsync: {@Players}", players);
     }
@@ -51,10 +61,8 @@ class Program
     {
         var logger = setup.CreateLogger<IviItemTypeClient>();
 
-        var itemTypeClient = new IviItemTypeClient(setup.IviConfig, logger)
-        {
-            UpdateSubscription = new LoggingItemTypeUpdateSubscription(logger)
-        };
+        using var itemTypeClient = new IviItemTypeClient(setup.IviConfig, logger);
+        itemTypeClient.SubscribeToStream(new LoggingItemTypeUpdateSubscription(logger));
 
         var metadataProperties = new Dictionary<string, object>
         {

@@ -21,7 +21,7 @@ public class PaymentClientTests
     [Fact]
     public async Task GetToken_CanMapCybersourceToProto()
     {
-        var client = CreateClient();
+        using var client = CreateClient();
         CreateTokenRequest request = null;
         var mock = new Mock<FakePaymentService>();
         mock.Setup(s => s.GenerateClientToken(It.IsAny<CreateTokenRequest>(), It.IsAny<ServerCallContext>()))
@@ -46,7 +46,7 @@ public class PaymentClientTests
     [Fact]
     public async Task GetToken_CanMapCybersourceTokenToIviToken()
     {
-        var client = CreateClient();
+        using var client = CreateClient();
         var mock = new Mock<FakePaymentService>();
         mock.Setup(s => s.GenerateClientToken(It.IsAny<CreateTokenRequest>(), It.IsAny<ServerCallContext>()))
             .Returns(() => Task.FromResult(new Token
@@ -85,7 +85,7 @@ public class PaymentClientTests
     [Fact]
     public async Task CreateCybersourcePaymentMethod_CanMapToProto()
     {
-        var client = CreateClient();
+        using var client = CreateClient();
         CreatePaymentMethodRequest request = null;
         var mock = new Mock<FakePaymentService>();
         mock.Setup(s => s.CreatePaymentMethod(It.IsAny<CreatePaymentMethodRequest>(), It.IsAny<ServerCallContext>()))
@@ -117,7 +117,7 @@ public class PaymentClientTests
     [Fact]
     public async Task CreateCybersourcePaymentMethod_CanMapToPaymentMethod()
     {
-        var client = CreateClient();
+        using var client = CreateClient();
         var mock = new Mock<FakePaymentService>();
         mock.Setup(s => s.CreatePaymentMethod(It.IsAny<CreatePaymentMethodRequest>(), It.IsAny<ServerCallContext>()))
             .Returns(() => Task.FromResult(new PaymentMethodResponse
@@ -149,7 +149,7 @@ public class PaymentClientTests
     [Fact]
     public async Task GetPaymentMethods_CanMapToProto()
     {
-        var client = CreateClient();
+        using var client = CreateClient();
         GetPaymentMethodRequest request = null;
         var mock = new Mock<FakePaymentService>();
         mock.Setup(s => s.GetPaymentMethods(It.IsAny<GetPaymentMethodRequest>(), It.IsAny<ServerCallContext>()))
@@ -172,7 +172,7 @@ public class PaymentClientTests
     [Fact]
     public async Task GetPaymentMethods_CanMapToPaymentMethod()
     {
-        var client = CreateClient();
+        using var client = CreateClient();
         var mock = new Mock<FakePaymentService>();
         var response = new GetPaymentMethodResponse();
         response.PaymentMethods.Add(new PaymentMethodResponse()
@@ -205,7 +205,7 @@ public class PaymentClientTests
     [Fact]
     public async Task UpdateCybersourcePayment_CanMapToProto()
     {
-        var client = CreateClient();
+        using var client = CreateClient();
         UpdatePaymentMethodRequest request = null;
         var mock = new Mock<FakePaymentService>();
         mock.Setup(s => s.UpdatePaymentMethod(It.IsAny<UpdatePaymentMethodRequest>(), It.IsAny<ServerCallContext>()))
@@ -239,7 +239,7 @@ public class PaymentClientTests
     [Fact]
     public async Task UpdateCybersourcePayment_CanMapToPaymentMethod()
     {
-        var client = CreateClient();
+        using var client = CreateClient();
         var mock = new Mock<FakePaymentService>();
         mock.Setup(s => s.UpdatePaymentMethod(It.IsAny<UpdatePaymentMethodRequest>(), It.IsAny<ServerCallContext>()))
             .Returns(() => Task.FromResult(new PaymentMethodResponse
@@ -259,7 +259,7 @@ public class PaymentClientTests
     [Fact]
     public async Task DeletePaymentMethod_CanMapToProto()
     {
-        var client = CreateClient();
+        using var client = CreateClient();
         DeletePaymentMethodRequest request = null;
         var mock = new Mock<FakePaymentService>();
         mock.Setup(s => s.DeletePaymentMethod(It.IsAny<DeletePaymentMethodRequest>(), It.IsAny<ServerCallContext>()))
