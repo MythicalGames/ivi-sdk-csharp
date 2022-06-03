@@ -90,12 +90,14 @@ task PackNugetPackages {
     Write-Host 
 
     dotnet pack $sdk_csproj_path --no-build --include-symbols --configuration $global:project_configuration /p:AssemblyVersion=$global:semver /p:FileVersion=$global:semver /p:InformationalVersion=$global:semver /p:Version=$global:semver --output $sdk_nuget_package_output_dir
+    dotnet pack $ivifakeserver_csproj_path --no-build --include-symbols --configuration $global:project_configuration /p:AssemblyVersion=$global:semver /p:FileVersion=$global:semver /p:InformationalVersion=$global:semver /p:Version=$global:semver --output $packages_root_dir
     
 }
 
 task PublishNugetPackages {
     
     $sdk_nuget_package_path = "$($sdk_nuget_package_output_dir)/$($sdk_assembly_name).$($global:semver).nupkg"
+    $ivifakeserver_nuget_package_path = "$($packages_root_dir)/$($ivifakeserver_assembly_name).$($global:semver).nupkg"
     $apiKey = $env:NUGET_PUBLISH_TOKEN
 
     Write-Host 
@@ -105,11 +107,13 @@ task PublishNugetPackages {
     Write-Host 
 
     if ($on_build_server) {
-        dotnet nuget push $sdk_nuget_package_path -s "github" --api-key $apiKey
+        dotnet nuget push $sdk_nuget_package_path -s "github" --api-key $apiKey --skip-duplicate
+        dotnet nuget push $ivifakeserver_nuget_package_path -s "github" --api-key $apiKey --skip-duplicate
     }
     else{
         $local_nuget = [System.Environment]::GetEnvironmentVariable('MYTHICAL_LOCAL_NUGET')
         Copy-Item -Path $sdk_nuget_package_path -Destination $local_nuget
+        Copy-Item -Path $ivifakeserver_nuget_package_path -Destination $local_nuget
     }
 }
 

@@ -14,6 +14,7 @@ public class IviConfiguration
 
     public int KeepAlive { get; set; } = 30;
 
+    public bool IsSecure { get; set; } = true;
 
     internal void Validate()
     {

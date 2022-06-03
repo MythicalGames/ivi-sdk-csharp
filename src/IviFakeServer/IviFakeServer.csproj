@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<PackageId>Mythical.Game.IviFakeServer</PackageId>
+		<RepositoryUrl>https://github.com/MythicalGames/ivi-sdk-csharp</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<Version></Version>
+		<Authors>Mythical Games, Inc.</Authors>
+		<Company>Mythical Games, Inc.</Company>
+		<AssemblyName>Mythical.Game.IviFakeServer</AssemblyName>
+		<RootNamespace>Mythical.Game.IviFakeServer</RootNamespace>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	</PropertyGroup>
+	
+    <ItemGroup>
+        <PackageReference Include="Google.Protobuf" Version="3.19.4" />
+        <PackageReference Include="Grpc" Version="2.40.0" />
+        <PackageReference Include="Grpc.AspNetCore" Version="2.40.0" />
+        <PackageReference Include="Grpc.Tools" Version="2.40.0">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Mapster" Version="7.2.0" />
+    </ItemGroup>
+
+    <ItemGroup>      
+      <Protobuf Include="../IviSdk/ivi-sdk-proto/**/*.proto" ProtoRoot="../IviSdk/ivi-sdk-proto" CompileOutputs="TRUE" GrpcServices="Server" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="..\..\SharedConfig\CommonAssemblyInfo.cs" Link="CommonAssemblyInfo.cs" />
+    </ItemGroup>
+  
+  <Target Name="PackAndPublishNuget" AfterTargets="Build" Condition="'$(Configuration)'=='Debug'">
+    <Exec Command="powershell.exe -noprofile -command &quot;&amp; {..\..\_build\PackAndPublishNuget.ps1 -configuration '$(Configuration)' -output_path '$(OutputPath)' -csproj_path '$(MSBuildProjectFullPath)' -assembly_name '$(AssemblyName)'}&quot;" />
+  </Target>	
+</Project>
